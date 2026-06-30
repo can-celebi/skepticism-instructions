@@ -1,0 +1,224 @@
+/* sandbox.css — right interactive panel (buyer-screen styling, uniform white) */
+.sandbox { position: relative; max-width: 440px; margin: 0 auto; width: 100%; background: #fff; }
+
+.topbar { display: flex; justify-content: center; min-height: 32px; margin-bottom: 8px; }
+.role-toggle { display: inline-flex; border: 1px solid #ccc; border-radius: 7px; overflow: hidden; }
+.role-btn { font-family: var(--mono); font-size: 13px; padding: 5px 14px; border: none; background: #fff; cursor: pointer; }
+.role-btn.active { background: #000; color: #fff; }
+
+/* chart blocks */
+.chart-block { margin-bottom: 14px; }
+.chart-title { font-size: 15px; color: #333; margin-bottom: 6px; text-align: center; }
+.chart-box { position: relative; display: flex; justify-content: center; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+.no-reviews { position: absolute; font-size: 18px; color: #00000055; }
+.stats { font-size: 13px; color: var(--muted); margin-top: 6px; text-align: center; }
+#disclosed-block .chart-box { box-shadow: 0 1px 4px rgba(0,0,0,0.10); }
+
+/* stars */
+.stars { display: inline-flex; gap: 2px; font-size: 26px; line-height: 1; }
+.star { position: relative; color: #dcdcdc; }
+.star-fill { position: absolute; left: 0; top: 0; overflow: hidden; color: #f5b301; white-space: nowrap; }
+
+/* true value + lock */
+.tv-block { text-align: center; margin: 14px 0 8px; }
+.tv-stars { margin-bottom: 8px; }
+.tv-num-wrap { position: relative; display: inline-block; padding: 4px 12px; border: 2px solid transparent; border-radius: 8px; }
+.tv-num { font-size: 40px; font-weight: 900; line-height: 1; }
+.tv-lock { position: absolute; top: -8px; right: -10px; font-size: 17px; }
+.tv-block.locked .tv-num-wrap { border-color: #ccc; border-style: dashed; background: #fafafa; }
+.tv-label { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+/* seller controls */
+.controls { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; }
+.dice-btn { background: transparent; border: none; border-radius: 8px; padding: 5px; cursor: pointer; display: inline-flex; align-items: center; }
+.dice-btn img { height: 38px; display: block; }
+.dice-btn:hover { background: #0000000d; }
+.dice-btn:active { background: #00000016; }
+.toggles { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+.chk { font-size: 13px; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.chk-info { color: #b3b3b3; cursor: help; font-size: 12px; }
+.chk-info:hover { color: #000; }
+.color-warn { font-size: 12px; color: #b06a00; text-align: center; }
+
+/* faithful buyer bid slider */
+.bid-block { margin: 8px 0 4px; }
+.bid-block.inactive .slider-wrapper,
+.bid-block.inactive .bid-container,
+.bid-block.inactive .bid-slider-title-text { opacity: 0.5; pointer-events: none; }
+.bid-slider-title-text { font-size: 21px; text-align: center; }
+.bid-container { text-align: center; }
+#bid-text { font-size: 50px; font-weight: 900; opacity: 0; }
+.slider-wrapper { position: relative; width: 100%; max-width: 350px; margin: 8px auto 0; }
+.slider-wrapper input[type="range"] { width: 100%; }
+.form-range { -webkit-appearance: none; appearance: none; background: transparent; margin-top: 15px; }
+.form-range::-webkit-slider-runnable-track { background-color: #0000002e; height: 0.3rem; border-radius: 0.5rem; }
+.form-range::-moz-range-track { background-color: #0000002e; height: 0.3rem; border-radius: 0.5rem; }
+.form-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; background-color: black; width: 50px; height: 50px; border-radius: 50%; transform: translateY(-20px); box-shadow: 0 4px 8px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; }
+.form-range::-moz-range-thumb { background-color: black; width: 50px; height: 50px; border-radius: 50%; border: none; box-shadow: 0 4px 8px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; }
+.show-slider-knob.form-range::-webkit-slider-thumb { opacity: 1; pointer-events: auto; }
+.show-slider-knob.form-range::-moz-range-thumb { opacity: 1; pointer-events: auto; }
+.slider-ticks { position: relative; width: 100%; display: flex; justify-content: space-between; padding: 0 25px; margin-top: 5px; }
+.tick { display: flex; flex-direction: column; align-items: center; width: 0; }
+.tick-mark { width: 2px; height: 10px; background-color: #333; }
+.tick-label { font-size: 12px; color: #333; margin-top: 3px; }
+.submit-row { display: flex; justify-content: center; margin-top: 18px; }
+.submit-btn { font-family: var(--mono); font-size: 21px; padding: 8px 26px; border: none; border-radius: 8px; background: var(--red); color: #fff; cursor: pointer; }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.submit-btn.new-bid { background: var(--purple); }
+
+/* ===== payoff module (appended below the bid) ===== */
+.payoff-module { margin-top: 20px; border-top: 1px dashed var(--line); padding-top: 16px; text-align: center; }
+.pf-trade-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.pf-trade { font-size: 17px; font-weight: 700; }
+.pf-trade.yes { color: #1a7f4b; }
+.pf-trade.no { color: var(--red); }
+.info-btn { background: none; border: none; color: var(--muted); font-size: 15px; cursor: pointer; line-height: 1; }
+.info-btn:hover { color: #000; }
+
+.price-graph-block { margin-top: 12px; }
+.price-line-head { display: flex; justify-content: flex-end; }
+.price-line { position: relative; height: 50px; margin: 4px 8px 6px; }
+.pl-base { position: absolute; left: 0; right: 0; top: 24px; height: 2px; background: #bbb; }
+.pl-band { position: absolute; top: 14px; height: 22px; background: #00000012; border: 1px dashed #bbb; border-radius: 3px; }
+.pl-mark { position: absolute; top: 12px; width: 3px; height: 26px; transform: translateX(-1.5px); }
+.pl-tv { background: #000; }
+.pl-bid { background: var(--red); }
+.pl-price { background: var(--blue); }
+.pl-ends { position: absolute; top: 38px; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
+.pl-legend { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; font-size: 13px; margin-top: 6px; }
+.lg { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); }
+.lg b { color: #000; }
+.lg::before { content: ''; width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
+.lg-tv::before { background: #000; }
+.lg-bid::before { background: var(--red); }
+.lg-price::before { background: var(--blue); }
+.lg-price b { color: var(--blue); }
+
+/* blue dice (the black dice.png recolored via mask) */
+.price-dice-row { margin-top: 14px; }
+.price-dice-btn { background: transparent; border: none; cursor: pointer; padding: 5px; border-radius: 8px; }
+.price-dice-btn:hover { background: #1769c014; }
+.dice-mask { display: inline-block; width: 32px; height: 32px; -webkit-mask: url(../img/dice.png) center/contain no-repeat; mask: url(../img/dice.png) center/contain no-repeat; }
+.dice-blue { background: var(--blue); }
+.price-hint { font-size: 12px; color: var(--blue); margin-top: 5px; }
+
+.pf-reveal { margin-top: 14px; font-size: 15px; color: #333; }
+.pf-reveal b { font-size: 20px; }
+.pf-tv-stars .stars { font-size: 18px; }
+
+.pf-table { display: inline-block; text-align: left; margin-top: 16px; }
+.pf-prow { display: flex; align-items: center; gap: 14px; padding: 4px 0; font-size: 16px; }
+.pf-role { width: 110px; color: var(--muted); }
+.pf-num { width: 56px; font-weight: 700; font-size: 22px; text-align: right; }
+.pf-num.neg { color: var(--red); }
+
+/* ===== additions (v4) ===== */
+/* product image on slide 2 — STATIC height so changing pictures never shifts layout */
+.product-block { height: 150px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+.product-img { max-height: 150px; max-width: 90%; object-fit: contain; }
+
+/* lock/color info icons are click buttons (no hover tooltips) */
+.chk-row { display: flex; align-items: center; gap: 6px; }
+.chk-info { background: none; border: none; color: #b3b3b3; cursor: pointer; font-size: 13px; padding: 0; line-height: 1; }
+.chk-info:hover { color: #000; }
+
+/* clearer slider hit area (mobile-friendly active box) */
+.slider-wrapper { padding: 14px 10px; border-radius: 10px; transition: background .15s; }
+.slider-wrapper:focus-within, .slider-wrapper:active { background: #0000000a; box-shadow: inset 0 0 0 1px #0000001a; }
+.form-range { touch-action: none; cursor: pointer; }
+
+/* each player's result in its own box */
+.pf-table { display: flex; gap: 14px; justify-content: center; margin-top: 16px; }
+.pf-prow { flex-direction: column; align-items: center; gap: 4px; padding: 12px 18px; border: 1px solid var(--line); border-radius: 10px; background: #fafafa; }
+.pf-role { width: auto; color: var(--muted); font-size: 13px; }
+.pf-num { width: auto; font-size: 26px; }
+
+/* right-side info screen (mirror of the left one) */
+.right-info { background: #f6f2fb; border: 1px solid #e4d8f7; border-radius: 10px; padding: 20px 22px; color: #4a2f7a; max-width: 440px; margin: 0 auto; }
+.right-info.hide { display: none; }
+.info-screen-title { font-size: 19px; margin: 4px 0 16px; }
+.info-screen-body .stmt { font-size: 15px; line-height: 1.7; margin: 0 0 12px; }
+.info-close { float: right; font-family: var(--mono); font-size: 13px; background: #fff; border: 1px solid #d8c8f0; border-radius: 6px; padding: 4px 10px; cursor: pointer; color: #4a2f7a; }
+
+/* "this round" numbers box inside an info screen — distinct colour */
+.info-round { margin-top: 16px; padding: 12px 14px; background: #fff; border: 1px solid #cdbbe8; border-radius: 8px; }
+.info-round .stmt { margin: 0 0 8px; font-size: 14px; color: #2e1a52; }
+.info-round .stmt:last-child { margin-bottom: 0; }
+
+/* faded product image behind the true-value number (slide 3+) */
+.tv-block { position: relative; }
+.tv-bg { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 190px; max-height: 120px; opacity: 0.12; z-index: 0; pointer-events: none; }
+.tv-stars, .tv-num-wrap, .tv-label, .product-block { position: relative; z-index: 1; }
+
+/* ===== example walkthrough + single-column end pages ===== */
+.example-view { text-align: center; }
+.ex-label { font-size: 17px; font-weight: 700; margin: 6px 0 14px; }
+.ex-line { position: relative; height: 46px; margin: 10px 14px; }
+.ex-base { position: absolute; left: 0; right: 0; top: 22px; height: 2px; background: #bbb; }
+.ex-mark { position: absolute; top: 10px; width: 3px; height: 26px; transform: translateX(-1.5px); }
+.ex-tv { background: #000; }
+.ex-bid { background: var(--red); }
+.ex-price { background: var(--blue); }
+.ex-note { font-size: 14px; color: #444; margin: 16px 12px; line-height: 1.6; }
+.ex-stepper { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; }
+.ex-stepper .nav-btn { padding: 6px 14px; font-size: 14px; }
+.ex-stepper .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ex-count { font-size: 13px; color: var(--muted); }
+.ex-reviews { display: flex; justify-content: center; align-items: flex-end; gap: 6px; height: 92px; }
+.ex-rev { display: flex; flex-direction: column; align-items: center; }
+.ex-rev-bar { width: 18px; background: #000; border-radius: 2px 2px 0 0; }
+.ex-rev span { font-size: 11px; margin-top: 3px; }
+.ex-rev-label { font-size: 13px; color: var(--muted); margin-top: 10px; }
+
+/* ===== v5: smooth slider + re-randomize dice ===== */
+.form-range::-webkit-slider-thumb { opacity: 1; pointer-events: auto; }
+.form-range::-moz-range-thumb { opacity: 1; pointer-events: auto; }
+.form-range { touch-action: none; height: 44px; }
+.slider-wrapper { padding: 4px 10px 0; }
+
+.chart-title-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+.chart-title-row .chart-title { margin: 0; }
+.dice-mini { background: transparent; border: none; padding: 2px; cursor: pointer; border-radius: 6px; display: inline-flex; }
+.dice-mini img { height: 20px; display: block; }
+.dice-mini:hover { background: #0000000d; }
+
+/* example takeaway (appears after stepping through all cases) */
+.ex-takeaway { margin-top: 16px; padding: 12px 14px; background: #f0faf4; border: 1px solid #bfe3cd; border-radius: 8px; font-size: 14px; color: #1a5e3a; line-height: 1.6; text-align: left; }
+.ex-takeaway.u-hide { display: none !important; }
+
+/* gray-band text cue (left text on the Price slide) */
+.gray-cue { background: #0000000d; border: 1px dashed #999; border-radius: 3px; padding: 0 5px; color: #000; }
+
+/* blue dice with a label */
+.reveal-dice-row { margin-top: 16px; }
+.price-dice-btn { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--blue); }
+
+/* slide-5 reveal-only, sales price, calc box, bigger re-randomize die */
+.tv-reveal-only { font-size: 18px; text-align: center; margin: 14px 0; }
+.tv-reveal-only b { font-size: 24px; }
+.sales-price-row { font-size: 14px; color: var(--blue); margin-top: 8px; text-align: center; }
+.sales-price-row b { font-size: 18px; }
+.price-dice-row { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.calc-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-top: 12px; cursor: pointer; }
+.calc-box { font-size: 13px; color: #666; background: #f6f6f6; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin-top: 8px; line-height: 1.8; display: inline-block; text-align: left; }
+.dice-mini img { height: 28px; }
+
+/* v9: tutorial top-bar die, sales-price spacing, slide-8 free-play order */
+.tut-topbar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 16px; }
+.tut-topbar-label { font-size: 13px; color: var(--muted); }
+.sales-price-row { margin-top: 18px; }
+
+/* slide 8 free-play: payoffs → true value + sales price → blue die → graph */
+.price-graph-block.play { display: flex; flex-direction: column; align-items: center; }
+.price-graph-block.play #pf-reveal { order: 1; }
+.price-graph-block.play #sales-price-row { order: 2; margin-top: 6px; }
+.price-graph-block.play .price-dice-row { order: 3; margin-top: 10px; }
+.price-graph-block.play #price-line { order: 4; width: 100%; margin-top: 16px; }
+.price-graph-block.play .pl-legend { order: 5; }
+
+/* v11: inline blue dice icon, die shake, directive attention */
+.dice-blue-inline { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -0.25em;
+  background-color: var(--blue); -webkit-mask: url(../img/dice.png) center/contain no-repeat; mask: url(../img/dice.png) center/contain no-repeat; }
+@keyframes shake-die { 0%,100% { transform: translateX(0) rotate(0); } 20% { transform: translateX(-2px) rotate(-7deg); }
+  40% { transform: translateX(2px) rotate(7deg); } 60% { transform: translateX(-2px) rotate(-5deg); } 80% { transform: translateX(2px) rotate(5deg); } }
+.dice-mini.shake { animation: shake-die 0.6s ease-in-out infinite; }

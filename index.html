@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reimagined Instructions — prototype</title>
+  <link rel="stylesheet" href="./css/layout.css?v=11" />
+  <link rel="stylesheet" href="./css/slides.css?v=11" />
+  <link rel="stylesheet" href="./css/sandbox.css?v=11" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+</head>
+<body>
+  <div id="app">
+
+    <div class="content">
+      <!-- ============ LEFT: instruction text / info ============ -->
+      <section id="left" class="panel-left">
+        <div class="left-scroll">
+          <div class="slide-card" id="slide-card">
+            <div class="slide-step" id="slide-step"></div>
+            <h1 class="slide-title" id="slide-title"></h1>
+            <div class="slide-main" id="slide-main"></div>
+            <button id="more-detail" class="more-detail-link" hidden>ⓘ more detail</button>
+          </div>
+
+          <!-- info text shown here (replaces the slide text) -->
+          <div class="left-info hide" id="left-info">
+            <button id="left-info-close" class="info-close">✕ close</button>
+            <h2 class="left-info-title" id="left-info-title"></h2>
+            <div class="left-info-body" id="left-info-body"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ RIGHT: interactive UI ============ -->
+      <section id="right" class="panel-right">
+        <!-- directive band with a STATIC reserved height -->
+        <div class="ui-directive hide" id="directive">
+          <span class="dir-text" id="dir-text"></span>
+          <span class="dir-check" id="dir-check"></span>
+        </div>
+
+        <div class="ui-scroll">
+          <div id="sandbox" class="sandbox" data-role="seller" data-phase="decision">
+
+            <div class="topbar">
+              <div id="role-toggle" class="role-toggle" data-min-slide="5">
+                <button id="role-seller" class="role-btn active">Seller</button>
+                <button id="role-buyer" class="role-btn">Buyer</button>
+              </div>
+            </div>
+
+            <div id="decision-view" class="decision-view">
+
+              <!-- tutorial top bar: black die re-randomizes the whole scenario (slides 6/7) -->
+              <div id="tut-topbar" class="tut-topbar">
+                <button id="topbar-dice" class="dice-btn" title="new product, value & price"><img src="./img/dice.png" alt="dice" /></button>
+                <span class="tut-topbar-label">new product</span>
+              </div>
+
+              <div id="disclosed-block" class="chart-block" data-min-slide="4">
+                <div class="chart-title-row">
+                  <span class="chart-title" id="disc-title">Disclosed reviews</span>
+                  <button id="rerandom-btn" class="dice-mini" title="new product & reviews"><img src="./img/dice.png" alt="dice" /></button>
+                </div>
+                <div class="chart-box">
+                  <canvas id="discChart" width="340" height="150"></canvas>
+                  <div id="no-disclosed" class="no-reviews">No reviews selected</div>
+                </div>
+                <div class="stats" id="disc-stats"></div>
+              </div>
+
+              <div id="all-block" class="chart-block" data-min-slide="3">
+                <div class="chart-title">The seller's 10 reviews</div>
+                <div class="chart-box"><canvas id="allChart" width="340" height="150"></canvas></div>
+                <div class="stats" id="all-stats"></div>
+              </div>
+
+              <!-- true value (seller) with product image / stars / lock -->
+              <div id="tv-block" class="tv-block">
+                <img id="tv-bg" class="tv-bg" alt="" />
+                <div id="product-block" class="product-block"><img id="product-img" class="product-img" alt="product" /></div>
+                <div id="tv-stars" class="tv-stars"></div>
+                <div class="tv-num-wrap" id="tv-num-wrap">
+                  <div id="true-value" class="tv-num">—</div>
+                  <span id="tv-lock" class="tv-lock" title="value locked">🔒</span>
+                </div>
+                <div class="tv-label" id="tv-label">True value of the product</div>
+              </div>
+
+              <!-- seller controls -->
+              <div id="controls" class="controls">
+                <button id="dice" class="dice-btn" title="new product"><img src="./img/dice.png" alt="dice" /></button>
+                <div class="toggles">
+                  <div class="chk-row"><label class="chk"><input type="checkbox" id="lock" /> lock value</label><button class="chk-info" id="lock-info-btn">ⓘ</button></div>
+                  <div class="chk-row"><label class="chk"><input type="checkbox" id="color-helper" /> color helper</label><button class="chk-info" id="color-info-btn">ⓘ</button></div>
+                </div>
+                <div id="color-warn" class="color-warn"></div>
+              </div>
+
+              <!-- buyer bid -->
+              <div id="bid-block" class="bid-block">
+                <div class="bid-slider-title-text">Your bid</div>
+                <div class="bid-container"><span id="bid-text">3.0</span></div>
+                <div class="slider-wrapper">
+                  <input type="range" id="bid" class="form-range" min="0" max="6" step="0.1" value="3" />
+                  <div class="slider-ticks">
+                    <span class="tick"><span class="tick-mark"></span><span class="tick-label">0.0</span></span>
+                    <span class="tick"><span class="tick-mark"></span><span class="tick-label">1.0</span></span>
+                    <span class="tick"><span class="tick-mark"></span><span class="tick-label">2.0</span></span>
+                    <span class="tick"><span class="tick-mark"></span><span class="tick-label">3.0</span></span>
+                    <span class="tick"><span class="tick-mark"></span><span class="tick-label">4.0</span></span>
+                    <span class="tick"><span class="tick-mark"></span><span class="tick-label">5.0</span></span>
+                    <span class="tick"><span class="tick-mark"></span><span class="tick-label">6.0</span></span>
+                  </div>
+                </div>
+                <div class="submit-row" id="submit-row"><button id="submit-bid" class="submit-btn" disabled>Submit</button></div>
+              </div>
+
+              <!-- buyer payoff appended BELOW the bid (nothing above changes) -->
+              <div id="payoff-module" class="payoff-module" hidden>
+                <!-- slide 5: reveal the true value only (no trade/payoff yet) -->
+                <div id="tv-reveal-only" class="tv-reveal-only">True value was <b id="tv-reveal-only-val">—</b> <span id="tv-reveal-only-stars"></span></div>
+
+                <div class="pf-trade-row" id="pf-trade-row">
+                  <span id="pf-trade" class="pf-trade"></span>
+                  <button id="trade-info-btn" class="info-btn" title="how is this calculated?">ⓘ</button>
+                </div>
+
+                <div class="pf-table" id="pf-table">
+                  <div class="pf-prow"><span class="pf-role">Buyer payoff</span><span class="pf-num" id="pf-buyer-num">—</span></div>
+                  <div class="pf-prow"><span class="pf-role">Seller payoff</span><span class="pf-num" id="pf-seller-num">—</span></div>
+                </div>
+
+                <label class="calc-toggle" id="calc-toggle"><input type="checkbox" id="calc-check" /> show calculation</label>
+                <div class="calc-box" id="calc-box"></div>
+
+                <!-- blue dice below the payoffs reveals the price graphic on demand -->
+                <div class="reveal-dice-row" id="reveal-dice-row">
+                  <button id="reveal-price-dice" class="price-dice-btn"><span class="dice-mask dice-blue"></span> draw the price</button>
+                </div>
+
+                <div id="price-graph-block" class="price-graph-block">
+                  <div class="price-line-head" id="price-line-head"><button id="graph-info-btn" class="info-btn" title="how to read this graph">ⓘ</button></div>
+                  <div class="price-line" id="price-line">
+                    <div class="pl-band" id="pl-band"></div>
+                    <div class="pl-base"></div>
+                    <div class="pl-mark pl-tv" id="pl-tv"></div>
+                    <div class="pl-mark pl-bid" id="pl-bid"></div>
+                    <div class="pl-mark pl-price" id="pl-price"></div>
+                    <div class="pl-ends"><span>0</span><span>6</span></div>
+                  </div>
+                  <div class="pl-legend">
+                    <span class="lg lg-tv">value <b id="lg-tv">—</b></span>
+                    <span class="lg lg-bid">bid <b id="lg-bid">—</b></span>
+                    <span class="lg lg-price">price <b id="lg-price">—</b></span>
+                  </div>
+                  <div class="sales-price-row" id="sales-price-row">Sales Price <b id="sales-price-val">—</b></div>
+                  <div class="price-dice-row">
+                    <button id="price-dice" class="price-dice-btn" title="draw the sale price"><span class="dice-mask dice-blue"></span></button>
+                  </div>
+                  <div class="price-hint" id="price-hint">click the <span class="dice-blue-inline"></span> to draw the sale price</div>
+                  <div id="tut-outcome" class="pf-trade"></div>
+                  <div id="pf-reveal" class="pf-reveal">True value <b id="pf-tv-reveal">—</b> <span id="pf-tv-stars" class="pf-tv-stars"></span></div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- example walkthrough (text on the left, this stepper on the right) -->
+            <div id="example-view" class="example-view">
+              <div class="ex-label" id="ex-label"></div>
+              <div class="ex-visual" id="ex-visual"></div>
+              <div class="ex-note" id="ex-note"></div>
+              <div class="ex-stepper">
+                <button class="nav-btn" id="ex-prev">‹ prev</button>
+                <span class="ex-count" id="ex-count"></span>
+                <button class="nav-btn" id="ex-next">next ›</button>
+              </div>
+              <div class="ex-takeaway" id="ex-takeaway"></div>
+            </div>
+          </div>
+
+          <!-- info shown on the RIGHT (replaces the UI) for LEFT-panel triggers -->
+          <div id="right-info" class="right-info hide">
+            <button id="right-info-close" class="info-close">✕ close</button>
+            <h2 class="info-screen-title" id="right-info-title"></h2>
+            <div class="info-screen-body" id="right-info-body"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ FOOTER spanning both columns ============ -->
+    <footer class="app-footer" id="footer">
+      <button class="nav-btn back" id="back-btn" disabled>Back</button>
+      <div class="progress-dots" id="progress-dots"></div>
+      <button class="nav-btn next" id="next-btn">Next</button>
+    </footer>
+  </div>
+
+  <script src="./js/config.js"></script>
+  <script src="./js/rng.js"></script>
+  <script src="./js/stars.js"></script>
+  <script src="./js/products.js"></script>
+  <script src="./js/dataSource.js"></script>
+  <script src="./js/charts.js"></script>
+  <script src="./js/state.js"></script>
+  <script src="./js/sandbox.js"></script>
+  <script src="./js/slides.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

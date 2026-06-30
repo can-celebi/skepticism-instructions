@@ -1,0 +1,77 @@
+/* slides.css — left text, the UI directive band, and footer nav */
+.slide-card { width: 100%; max-width: 460px; margin: 0 auto; }
+.slide-step { font-size: 13px; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; }
+.slide-title { font-size: 26px; line-height: 1.25; margin: 0 0 18px; font-weight: 700; }
+.slide-main .stmt { font-size: 18px; line-height: 1.6; color: #333; margin: 0 0 16px; }
+.slide-main .stmt strong { color: #000; }
+.slide-main .stmt em { font-style: normal; font-weight: 700; }
+
+/* more-detail link under the text */
+.more-detail-link { font-family: var(--mono); font-size: 13px; color: var(--muted); background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; margin-top: 4px; }
+
+/* info screen on the LEFT (distinct colour), replaces the slide text */
+.left-info {
+  width: 100%; max-width: 460px; margin: 0 auto;
+  background: #f6f2fb; border: 1px solid #e4d8f7; border-radius: 10px;
+  padding: 20px 22px; color: #4a2f7a;
+}
+.left-info.hide { display: none; }
+.info-close { float: right; font-family: var(--mono); font-size: 13px; background: #fff; border: 1px solid #d8c8f0; border-radius: 6px; padding: 4px 10px; cursor: pointer; color: #4a2f7a; }
+.left-info-title { font-size: 19px; margin: 4px 0 16px; }
+.left-info-body .stmt { font-size: 15px; line-height: 1.7; margin: 0 0 12px; }
+.left-info-body .stmt b { color: #2e1a52; }
+
+/* directive: a band at the TOP of the UI with a STATIC reserved height
+   (it fades in/out so nothing below it ever shifts) */
+.ui-directive {
+  flex: 0 0 auto;
+  min-height: 46px;
+  margin: 10px 20px 4px;
+  padding: 11px 14px;
+  border: 1px solid #e4d8f7;
+  background: #faf7ff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--purple);
+  font-size: 14px;
+  font-weight: 700;
+  transition: opacity .3s ease, background .3s ease, border-color .3s ease;
+}
+.ui-directive.hide { opacity: 0; pointer-events: none; }
+.ui-directive.done { color: #1a7f4b; border-color: #bfe3cd; background: #f0faf4; }
+.ui-directive.done .dir-text { text-decoration: line-through; }
+.dir-text { flex: 1 1 auto; text-align: left; }
+.dir-check {
+  flex: 0 0 auto; width: 18px; height: 18px;
+  border: 2px solid var(--purple); border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; color: #fff; background: #fff; transition: .2s;
+}
+.ui-directive.done .dir-check { background: #1a7f4b; border-color: #1a7f4b; transform: scale(1.12); }
+.dice-inline { height: 20px; vertical-align: middle; }
+
+/* footer nav */
+.progress-dots { display: flex; gap: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #d6d6d6; transition: 0.2s; }
+.dot.done { background: #9aa0a6; }
+.dot.current { background: #000; transform: scale(1.25); }
+
+.nav-btn {
+  font-family: var(--mono);
+  font-size: 16px;
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.nav-btn.next { background: #000; color: #fff; border-color: #000; }
+.nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.nav-btn:not(:disabled):hover { transform: translateY(-1px); }
+
+/* v11: blink the directive when it needs extra attention */
+@keyframes dir-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.ui-directive.attract { animation: dir-blink 1s ease-in-out infinite; font-weight: 700; }
