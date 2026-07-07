@@ -62,8 +62,6 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-below-text p, .lx-below-text .stmt { font-size: 18px; line-height: 1.65; color: #333; margin: 0 0 18px; }
 .lx-below-text .stmt + .stmt { margin-top: 20px; }
 .lx-below-text strong { color: #000; }
-.lx-ic { display: inline-block; width: 1.5em; }
-.lx-lead { display: block; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin: 6px 0 2px; }
 .lx-gap { display: block; height: 10px; }
 .lx-buyer-line {
   display: block; text-align: center; margin: 34px auto 8px;
@@ -87,11 +85,8 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 #lx-col-b .lx-stage { max-width: none; }
 .lx-scene-center { text-align: center; }
 .lx-box-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #8a7fb0; font-weight: 600; margin: 0 0 6px; }
-.lx-box-title.lx-mt { margin-top: 16px; }
 .lx-cue { text-align: center; color: #9a93ad; font-weight: 400; font-size: 12.5px; letter-spacing: .3px; margin: 8px 0; opacity: .8; transition: opacity .45s ease; }
 .lx-cue.hide { opacity: 0; pointer-events: none; }
-.lx-pop { animation: lx-pop .32s ease; }
-@keyframes lx-pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
 
 /* product card */
 .lx-product { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; }
@@ -99,8 +94,6 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-shoe-blank { background: #f3f3f3; border-radius: 10px; }
 .lx-val { font-size: 38px; font-weight: 900; line-height: 1; }
 .lx-val-label { font-size: 12px; color: var(--muted); }
-.lx-stars-q { display: inline-flex; gap: 2px; font-size: 26px; color: var(--gray); }
-.lx-qstar { color: #bbb; }
 
 /* two-panel + phone-feed upward swipe */
 .lx-swipe-host { position: relative; overflow: hidden; }
@@ -123,7 +116,6 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-rev.hi .lx-rev-num { color: rgb(128,0,128); }
 .lx-rev.lo .lx-rev-num { color: rgb(230,130,0); }
 .lx-rev-num { font-weight: 700; min-width: 2.4em; text-align: right; }
-.lx-rev-empty { color: var(--muted); font-style: italic; padding: 8px 6px; border: 1px dashed var(--line); border-radius: 8px; }
 
 /* stars (stars.js output; not loaded from sandbox.css here) */
 .stars { display: inline-flex; gap: 2px; font-size: 20px; line-height: 1; }
@@ -142,22 +134,10 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-die.held img { animation: lx-pulse 1s ease-in-out infinite; }
 @keyframes lx-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 @keyframes lx-pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
-.lx-lock { border: none; background: transparent; font-size: 18px; cursor: pointer; }
-.lx-lock.open { opacity: .5; }
-.lx-die-lab { font-size: 12px; color: var(--muted); }
 .lx-ticks-row { display: inline-flex; gap: 14px; }
 .lx-tick { font-size: 13px; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
-.lx-blue-die { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 7px 12px; cursor: pointer; font-family: var(--mono); font-size: 13px; display: inline-flex; align-items: center; gap: 7px; }
-.lx-blue-die:hover { background: #eef4fb; }
-.lx-blue-dot { width: 14px; height: 14px; border-radius: 3px; background: var(--blue); display: inline-block; }
 
 /* ---------- bid ---------- */
-.lx-bid-area { margin-top: 16px; }
-.lx-bidbox { text-align: center; transition: opacity .35s ease; }
-.lx-bidbox.done .lx-slider-wrap, .lx-bidbox.done #lx-bid-btn { opacity: .35; pointer-events: none; }
-.lx-bidbox.done .lx-bid-title, .lx-bidbox.done #lx-bidval { display: none; }   /* the reveal row shows the bid instead */
-.lx-bid-title { font-size: 20px; }
-.lx-bidval { font-size: 44px; font-weight: 900; line-height: 1; }
 .lx-slider-wrap { max-width: 380px; margin: 6px auto 0; }
 .lx-slider-wrap input[type=range] { width: 100%; -webkit-appearance: none; appearance: none; background: transparent; margin: 12px 0 0; }
 .lx-slider-wrap input[type=range]::-webkit-slider-runnable-track { background: #0000002e; height: .3rem; border-radius: .5rem; }
@@ -171,11 +151,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-btn.ghost:hover { border-color: #333; background: #00000006; }
 .lx-btn:hover { transform: translateY(-1px); }
 
-.lx-bid-outcome { margin-top: 16px; text-align: center; }
-.lx-reveal-row { display: flex; align-items: baseline; justify-content: center; gap: 12px; }
-.lx-reveal-lab { font-size: 20px; }
-.lx-reveal-num { font-size: 44px; font-weight: 900; line-height: 1.1; }
-.lx-tvc { color: #000; } .lx-bidc { color: var(--red); }
+.lx-bidc { color: var(--red); }
 .lx-try { margin-top: 10px; font-family: var(--mono); font-size: 14px; background: none; border: none; color: var(--muted); cursor: pointer; text-decoration: underline; }
 
 /* ---------- line graph ---------- */
@@ -191,27 +167,13 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-mark.lx-price.lx-price-appear { animation: lx-priceappear 1s ease; transform-origin: bottom; }
 @keyframes lx-priceappear { from { opacity: 0; transform: translateX(-1.5px) scaleY(.25); } to { opacity: 1; transform: translateX(-1.5px) scaleY(1); } }
 .lx-ends { position: absolute; left: 0; right: 0; top: 100%; display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
-.lx-legend { display: flex; gap: 14px; justify-content: center; font-size: 13px; margin-top: 14px; }
-.lx-lg b { font-size: 15px; }
-.lx-lg.lg-tv b { color: #000; } .lx-lg.lg-bid b { color: var(--red); } .lx-lg.lg-price b { color: var(--blue); }
 
 /* ---------- trade / earnings ---------- */
-.lx-hint { color: var(--muted); font-size: 14px; }
-.lx-split-btn { background: var(--purple); border-color: var(--purple); }
-.lx-trade-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: center; margin-top: 8px; }
 .lx-trade-out { text-align: center; margin-top: 12px; font-weight: 300; min-height: 1.4em; }
 .lx-yes { color: #1a7f4b; } .lx-no { color: var(--red); } .lx-muted { color: var(--muted); font-weight: 400; }
 .lx-calc { justify-content: center; display: flex; margin-top: 12px; }
 .lx-calc-box { margin-top: 10px; font-size: 13px; }
 .lx-calc-box.plain { background: none; padding: 0; min-height: 84px; }   /* slide 7: reserve the 3-line (trade) height so no-trade doesn't shrink it */
-.lx-calc-box.gray { background: #f4f4f4; border-radius: 8px; padding: 10px 12px; }  /* examples */
-
-/* ---------- examples ---------- */
-.lx-ex-head { display: flex; align-items: baseline; gap: 12px; }
-.lx-ex-count { font-size: 12px; color: var(--muted); }
-.lx-ex-label { font-weight: 700; }
-.lx-ex-note { font-size: 15px; line-height: 1.5; color: #333; }
-.lx-ex-nav { display: flex; gap: 10px; }
 
 /* ---------- info overlay ---------- */
 .lx-info-panel { position: absolute; inset: auto; left: 50%; top: 20%; transform: translateX(-50%); width: min(460px, 90vw); background: #f6f2fb; border: 1px solid #e4d8f7; border-radius: 12px; padding: 20px 22px; color: #4a2f7a; box-shadow: 0 8px 30px rgba(0,0,0,.2); z-index: 40; }
@@ -233,10 +195,6 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-dot { width: 8px; height: 8px; border-radius: 50%; background: #d6d6d6; flex: 0 0 auto; }
 .lx-dot.done { background: #9aa0a6; } .lx-dot.current { background: #000; transform: scale(1.25); }
 
-/* ---------- switcher (mobile split only) ---------- */
-.lx-switch { display: none; position: fixed; top: 50%; transform: translateY(-50%); z-index: 60; width: 32px; height: 84px; border: 1px solid var(--line); background: #000; color: #fff; font-size: 26px; cursor: pointer; }
-#lx-app.view-a .lx-switch { right: 0; border-radius: 10px 0 0 10px; }
-#lx-app.view-b .lx-switch { left: 0; border-radius: 0 10px 10px 0; }
 
 /* ---------- v3 additions ---------- */
 .lx-fade { animation: lx-fadein 1.5s ease-in-out; }
@@ -247,20 +205,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-slider-wrap input.red::-moz-range-thumb { background: var(--red); }
 .lx-slider-wrap input.black::-webkit-slider-thumb { background: #000; }
 .lx-slider-wrap input.black::-moz-range-thumb { background: #000; }
-.lx-yourbid.left { text-align: left; }
-.lx-bidc { color: var(--red); }
 
-/* directive + true-value slider + blue die */
-.lx-directive { color: var(--purple); font-size: 13px; font-weight: 700; text-align: center; margin: 10px 0 4px; }
-.lx-tvtext { text-align: center; font-size: 14px; margin-top: 4px; }
-.lx-tvtext b { font-size: 20px; }
-.lx-tvinline { font-size: 13px; color: var(--muted); margin-left: 12px; }
-.lx-tvinline b { color: #000; }
-.lx-draw-wrap { text-align: center; margin-top: 18px; }
-.lx-bluedie { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; }
-.lx-die-face { font-size: 46px; color: var(--blue); line-height: 1; }
-.lx-bluedie-lab { font-size: 13px; color: var(--blue); font-weight: 700; }
-.lx-bluedie:hover .lx-die-face { opacity: .8; }
 
 /* visual-aid warning */
 .lx-warn { max-width: 575px; margin: 8px auto 0; text-align: center; font-size: 12px; color: #b06a00; }
@@ -270,7 +215,6 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-x { color: var(--red); font-weight: 900; }
 .lx-paren { color: var(--muted); font-weight: 400; }
 .lx-cost-note { color: #b6b6b6; font-size: 10.5px; opacity: .85; }
-.lx-mt { margin-top: 16px; }
 
 .lx-val.lx-q { color: #9a9a9a; font-size: 46px; }
 
@@ -323,8 +267,6 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-blue { color: var(--blue); font-weight: 400; }
 
 /* slide 2 sections */
-.lx-goal { color: var(--purple); }
-.lx-task { color: var(--blue); }
 .lx-hr { display: block; height: 1px; background: var(--line); margin: 10px 0 16px; }
 
 /* slides 6/7 slider groups + subtle hints that fade after use, return on hover */
@@ -352,7 +294,6 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 
 /* example slogans */
 .lx-slogan { margin-top: 16px; font-size: 16px; font-weight: 700; text-align: center; }
-.lx-strategy { margin-top: 8px; color: var(--purple); }
 
 /* disclosure "shown" box empty state — keeps its height so nothing shifts */
 .lx-shownbox.is-empty { height: 118px; display: flex; align-items: center; justify-content: center; }
@@ -445,8 +386,6 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-calc-box.white { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-top: 34px; }
 /* example takeaway — calm and airy; salience comes from whitespace, not bold */
 .lx-slogan { margin-top: 52px; font-size: 16px; font-weight: 300; text-align: center; line-height: 1.6; color: #333; }
-.lx-slogan .lx-final-line { margin-top: 16px; }
-.lx-slogan .lx-final-line:first-child { margin-top: 0; }
 .lx-recap { min-height: 1.4em; }
 /* closing directive on the final slide */
 .lx-finalnote { text-align: center; max-width: 520px; margin: 26px auto 0; font-family: 'Helvetica Neue', Arial, sans-serif; text-transform: uppercase; }
@@ -491,10 +430,4 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
   .lx-two .lx-shoe { width: 120px; height: 86px; }
   .lx-two .stars { font-size: 15px; }
   /* when split, show one column at a time + the edge switcher */
-  #lx-app.split-open .lx-content { position: relative; }
-  #lx-app.split-open #lx-col-a, #lx-app.split-open #lx-col-b { flex: 1 1 100%; }
-  #lx-app.split-open.view-a #lx-col-b { display: none; }
-  #lx-app.split-open.view-b #lx-col-a { display: none; }
-  #lx-app.split-open #lx-col-b { border-left: none; }
-  #lx-app.split-open .lx-switch { display: flex; align-items: center; justify-content: center; }
 }

@@ -9,8 +9,6 @@ App.stage = (function () {
   let S = null, active = null, carTimer = null, typeHandle = null, warnT = null;
 
   function showWarn(msg) { const w = $('lx-warn'); w.textContent = msg; w.hidden = false; clearTimeout(warnT); warnT = setTimeout(() => { w.hidden = true; }, 3500); }
-  function setTv(v) { const e = $('lx-tvinline-val'); if (e) e.textContent = App.util.round1(v).toFixed(1); }
-
   function stopCarousel() { if (carTimer) { clearInterval(carTimer); carTimer = null; } }
   function carousel(fn, ms) { stopCarousel(); const at = S.i; fn(); carTimer = setInterval(() => { if (S.i !== at) { stopCarousel(); return; } fn(); }, ms); }
   function spinDie() { const d = $('lx-die'); if (d) { d.classList.remove('spin'); void d.offsetWidth; d.classList.add('spin'); } }
@@ -31,14 +29,9 @@ App.stage = (function () {
   }
   function advanceStep() {
     const steps = SLIDES[S.i].steps;
-    if (S.step >= steps.length - 1) {
-      if (active && active.gatedReveal && !S.revealed) { S.revealed = true; hideOk(); if (active.reveal) active.reveal(api); }
-      else hideOk();
-      return;
-    }
+    if (S.step >= steps.length - 1) { hideOk(); return; }
     S.step += 1; hideOk();
     typeStep(S.step, () => { if (S.step < steps.length - 1) showOk(); else hideOk(); });
-    if (active && active.onStep) active.onStep(S.step, api);
   }
   function afterStepTyped(stepIdx) { const sl = SLIDES[S.i]; if (stepIdx >= sl.steps.length - 1 && !sl.manualGate) unlockNextSoon(sl.gateDelayMs || 0); }
   function showOk() { const b = $('lx-ok'); b.hidden = false; b.classList.add('show'); }
@@ -65,7 +58,7 @@ App.stage = (function () {
     el.innerHTML = h; el.hidden = !h;
     if ($('lx-die')) $('lx-die').addEventListener('click', onDie);
     if ($('lx-auto')) $('lx-auto').addEventListener('change', (e) => { if (active && active.setAuto) active.setAuto(e.target.checked, api); });
-    if ($('lx-hold')) $('lx-hold').addEventListener('change', (e) => { S.hold = e.target.checked; if (active && active.onHold) active.onHold(S.hold, api); });
+    if ($('lx-hold')) $('lx-hold').addEventListener('change', (e) => { S.hold = e.target.checked; });
     if ($('lx-aid')) $('lx-aid').addEventListener('change', (e) => { S.aid = e.target.checked; if (e.target.checked) showWarn('these colors are a teaching aid, not shown in the actual game'); if (active && active.onAid) active.onAid(S.aid, api); });
   }
   function onDie() {
@@ -80,7 +73,7 @@ App.stage = (function () {
     get S() { return S; },
     get revisit() { return S.done.has(S.i); },   // returning to an already-completed slide → show final state, no animation
     lx: App.lx,
-    carousel, stopCarousel, setControls, showOk, hideOk, spinDie, showWarn, setTv,
+    carousel, stopCarousel, setControls, showOk, hideOk, spinDie, showWarn,
     openGate: (delay) => unlockNextSoon(delay || 0),   // manual-gate slides call this when their action condition is met
   };
 
@@ -140,7 +133,7 @@ App.stage = (function () {
   function go(i) {
     i = Math.max(0, Math.min(i, SLIDES.length - 1));
     leaveSlide();
-    S.i = i; S.step = 0; S.gateOpen = false; S.revealed = false; S.hold = false; S.aid = false;
+    S.i = i; S.step = 0; S.gateOpen = false; S.hold = false; S.aid = false;
     $('lx-main').innerHTML = ''; $('lx-below-text').innerHTML = ''; $('lx-stage').innerHTML = '';
     $('lx-controls').innerHTML = ''; $('lx-controls').hidden = true; $('lx-info-panel').hidden = true; hideOk();
     { const h = $('lx-nexthint'); h.hidden = true; h.textContent = ''; h.classList.remove('show'); }
@@ -153,22 +146,20 @@ App.stage = (function () {
     if (S.done.has(S.i)) {
       for (let k = 0; k < sl.steps.length; k++) staticStep(k);
       if (active && active.enter) active.enter(api);
-      if (active && active.gatedReveal && active.reveal) { S.revealed = true; active.reveal(api); }
       S.gateOpen = true; refreshNav(); hideOk(); showNextHint(S.i);
       return;
     }
 
     typeStep(0, () => {
       if (active && active.enter) active.enter(api);
-      const multi = sl.steps.length > 1;
-      if (multi || (active && active.gatedReveal)) showOkSoon(sl.okDelayMs || 0);   // okDelayMs delays only the first OK
+      if (sl.steps.length > 1) showOkSoon(sl.okDelayMs || 0);   // multi-step slides show the OK; okDelayMs delays the first one
       else hideOk();
     });
   }
 
   function mount() {
     S = { i: -1, step: 0, tv: null, reviews: [], disclosed: new Set(), product: null, bid: 3.0, price: null,
-          hold: false, aid: false, gateOpen: false, revealed: false, done: new Set() };
+          hold: false, aid: false, gateOpen: false, done: new Set() };
     buildDots();
     $('lx-ok').addEventListener('click', advanceStep);
     $('lx-main').addEventListener('click', (e) => {

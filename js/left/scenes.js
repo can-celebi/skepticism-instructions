@@ -17,7 +17,6 @@ App.scenes = (function () {
   const rowsOf = (a) => a.map((v, i) => ({ v, i }));
   const topK = (reviews, k) => reviews.slice().sort((a, b) => b - a).slice(0, k);
   const shuffle = (a) => { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
-  function fadeIn(el) { el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); }
   const q = (id) => document.getElementById(id);
 
   // phone-feed upward swipe: the current item slides up and out while the next slides up into place
@@ -53,10 +52,6 @@ App.scenes = (function () {
   }
   function swipeReset(host) { if (host) { host.classList.remove('lx-swipe-host'); host.style.height = ''; host.style.transition = ''; } }
   function sliderRaw(id, val, color) { return `<div class="lx-slider-wrap"><input type="range" id="${id}" class="lx-range ${color}" min="0" max="6" step="0.1" value="${val}"><div class="lx-ticks">${TICKS}</div></div>`; }
-  // true-value slider is 1–5 but inset on the 0–6 axis so its knob lines up with the bars
-  function sliderInset(id, val, color) {
-    return `<div class="lx-slider-wrap" style="width:66.66%;margin-left:16.66%"><input type="range" id="${id}" class="lx-range ${color}" min="1" max="5" step="0.1" value="${val}"></div>`;
-  }
   const markUsed = (id) => { const e = q(id); if (e) e.classList.add('used'); };
   const TYPE_SLOW = 60;   // accent typing (score/advice/calc/guide): same as the main-text typewriter
   function bidSlot(bid) { return `<div class="lx-bid-slot" id="lx-bid-slot">${sliderRaw('lx-slider', bid, 'black')}<div class="lx-yourbid">Your bid <b id="lx-bidval">${bid.toFixed(1)}</b></div></div>`; }
@@ -73,17 +68,6 @@ App.scenes = (function () {
     })();
     return { cancel() { stop = true; } };
   }
-  // type several lines one after another, each into its own div
-  function typeLines(container, lines, speed, onDone) {
-    container.innerHTML = ''; let k = 0, stop = false;
-    (function next() {
-      if (stop || k >= lines.length) { if (!stop && onDone) onDone(); return; }
-      const d = document.createElement('div'); container.appendChild(d);
-      typeText(d, lines[k++], speed, next);
-    })();
-    return { cancel() { stop = true; } };
-  }
-
   // how close the bid landed to the true value → a graded label + subtle tone
   function guessFeedback(diff) {
     if (diff <= 0.0001) return { label: 'Perfect guess', color: '#0e9e57' };
@@ -264,7 +248,7 @@ App.scenes = (function () {
       this.newScenario(api);   // static (auto off) until the user ticks auto or presses the die
       this._gateArmed = false;
       const guideText = 'Tick “auto” to play it automatically, or press the die for a new true value.';
-      const showControls = () => api.setControls({ die: true, auto: true, autoChecked: false, hold: true, aid: true, tv: true, guide: ' ' });
+      const showControls = () => api.setControls({ die: true, auto: true, autoChecked: false, hold: true, aid: true, guide: ' ' });
       const typeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) this._guideTyper = typeText(g, guideText, TYPE_SLOW); };
       const at = api.S.i;
       if (api.revisit) { q('lx-rise4').style.transition = 'none'; showControls(); const g = document.querySelector('#lx-controls .lx-guide'); if (g) g.textContent = guideText; q('lx-rise4').classList.add('show'); return; }
