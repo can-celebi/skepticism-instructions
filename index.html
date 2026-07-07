@@ -4,14 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reimagined Instructions — prototype</title>
-  <link rel="stylesheet" href="./css/layout.css?v=11" />
-  <link rel="stylesheet" href="./css/slides.css?v=11" />
-  <link rel="stylesheet" href="./css/sandbox.css?v=11" />
+  <link rel="stylesheet" href="./css/layout.css?v=13" />
+  <link rel="stylesheet" href="./css/slides.css?v=13" />
+  <link rel="stylesheet" href="./css/sandbox.css?v=13" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 </head>
 <body>
-  <div id="app">
+  <!-- starts collapsed (text only) so the right task panel never flashes before JS runs;
+       the first render re-derives these classes (or reveals immediately on resume) -->
+  <div id="app" class="pre-ack has-right view-left">
 
     <div class="content">
       <!-- ============ LEFT: instruction text / info ============ -->
@@ -21,6 +23,7 @@
             <div class="slide-step" id="slide-step"></div>
             <h1 class="slide-title" id="slide-title"></h1>
             <div class="slide-main" id="slide-main"></div>
+            <button id="ok-ack" class="ok-btn" hidden>OK, got it →</button>
             <button id="more-detail" class="more-detail-link" hidden>ⓘ more detail</button>
           </div>
 
@@ -192,6 +195,9 @@
       </section>
     </div>
 
+    <!-- mobile-only edge tab: flip between the instruction text and the task UI -->
+    <button id="panel-switch" class="panel-switch" aria-label="switch panel">›</button>
+
     <!-- ============ FOOTER spanning both columns ============ -->
     <footer class="app-footer" id="footer">
       <button class="nav-btn back" id="back-btn" disabled>Back</button>
@@ -203,6 +209,7 @@
   <script src="./js/config.js"></script>
   <script src="./js/rng.js"></script>
   <script src="./js/stars.js"></script>
+  <script src="./js/typewriter.js"></script>
   <script src="./js/products.js"></script>
   <script src="./js/dataSource.js"></script>
   <script src="./js/charts.js"></script>

@@ -30,11 +30,13 @@ App.state = (function () {
     slide: 1,
     maxSlideReached: 1,
     completed: {},        // slide → bool
+    acknowledged: {},     // slide → bool (subject clicked OK; reveals the right panel)
+    mobileView: 'left',   // narrow screens show ONE panel: 'left' (text) | 'right' (task)
     info: null,           // { side:'left'|'right', key, title, lines } or null
     exampleCase: 0,       // current case index on an example slide
     _savedProgress: 0,
   };
-  for (let n = 1; n <= N_SLIDES; n++) s.completed[n] = false;
+  for (let n = 1; n <= N_SLIDES; n++) { s.completed[n] = false; s.acknowledged[n] = false; }
 
   function emit() { recordProgress(); listeners.forEach((fn) => fn(s)); }
   function subscribe(fn) { listeners.push(fn); }
@@ -47,7 +49,9 @@ App.state = (function () {
     if (CONDITION[s.slide] === action) s.completed[s.slide] = true;
   }
   function onEnterSlide() {
-    if (CONDITION[s.slide] === 'visited') s.completed[s.slide] = true;
+    // 'visited' slides no longer auto-complete on arrival — the subject must click
+    // OK (acknowledge) to complete them and reveal the right panel. jumpTo() force-
+    // acknowledges resumed slides so a reconnect never re-plays the OK gate.
     // role follows the slide context: seller for the seller-side slides (≤4),
     // buyer for the bid/earnings slides (≥7); slides 5–6 keep the user's toggle.
     if (s.slide <= 4 && s.role !== 'seller') { s.role = 'seller'; s.phase = 'decision'; s.payoff = null; }
@@ -57,8 +61,21 @@ App.state = (function () {
     s.exampleCase = 0;
     s.priceRevealed = false;
     s.showCalc = false;
+    s.mobileView = 'left'; // every slide opens on its instruction text
     if (s.slide === 5) s.s5 = 'bid'; // restart the two-round predict flow
   }
+
+  // OK button: acknowledge the current slide's text, revealing the right panel.
+  // For 'visited' slides this is also the completion condition (there is no action).
+  function acknowledge() {
+    const slide = s.slides[s.slide - 1];
+    s.acknowledged[s.slide] = true;
+    if (CONDITION[s.slide] === 'visited') s.completed[s.slide] = true;
+    // on mobile, jump to the task view — unless there is no right panel (end pages)
+    s.mobileView = slide && slide.single ? 'left' : 'right';
+    emit();
+  }
+  function setMobileView(which) { s.mobileView = which === 'right' ? 'right' : 'left'; emit(); }
 
   // the JSON progress object (resume anchor) — sent/persisted on every update
   function buildProgress(lastCompleted) {
@@ -237,7 +254,7 @@ App.state = (function () {
   function jumpTo(n) {
     n = Math.max(1, Math.min(n, N_SLIDES));
     if (n <= 1) return;
-    for (let k = 1; k <= n; k++) s.completed[k] = true;
+    for (let k = 1; k <= n; k++) { s.completed[k] = true; s.acknowledged[k] = true; }
     s.slide = n; s.maxSlideReached = Math.max(s.maxSlideReached, n);
     onEnterSlide(); // set role/phase for the resumed slide (else buyer slides show seller UI)
     emit(); // recordProgress re-saves the resumed position
@@ -249,6 +266,7 @@ App.state = (function () {
     regenerateScenario, toggleDisclose, setBid, submitBid, rerollPrice, revertPayoff,
     setRole, setLockValue, setRevealColors, toggleInfo, clearInfo, setExampleCase, rerandomizeBuyer, drawPrice, revealPrice,
     tutorialRandomize, setShowCalc,
+    acknowledge, setMobileView,
     advanceSlide, backSlide, jumpTo, restore,
   };
 })();

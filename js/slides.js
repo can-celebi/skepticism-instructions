@@ -6,6 +6,11 @@ App.slides = (function () {
   const N = App.config.N_SLIDES;
   let dotsBuilt = false;
   let pendingSlide = null;
+  let lastSlide = null;   // detect slide changes → (re)start the typewriter once per entry
+  let typeHandle = null;  // handle to the running typewriter (skip/cancel)
+
+  // click the text to skip the typewriter to the end
+  function skipTyping() { if (typeHandle) typeHandle.skip(); }
 
   function buildDots() {
     const wrap = $('progress-dots');
@@ -50,16 +55,42 @@ App.slides = (function () {
     const slide = s.slides[s.slide - 1];
     if (!slide) return;
 
-    // slide text
+    const slideChanged = lastSlide !== s.slide;
+    lastSlide = s.slide;
+    const acked = !!s.acknowledged[s.slide];
+    const single = !!slide.single;
+
+    // slide meta
     $('slide-step').textContent = `${s.slide} / ${N}`;
     $('slide-title').textContent = slide.title || '';
     const main = Array.isArray(slide.main) ? slide.main : [slide.main];
-    $('slide-main').innerHTML = main.map((p) => `<p class="stmt">${p}</p>`).join('');
+    const mainHtml = () => main.map((p) => `<p class="stmt">${p}</p>`).join('');
     const extra = Array.isArray(slide.extra) ? slide.extra : [];
     $('more-detail').hidden = extra.length === 0 || !!slide.example; // examples show takeaway on the right
 
+    // ---- acknowledge / typing gate ----
+    // Each slide opens as text only; a typewriter reveals it (first visit) and then
+    // the OK button appears. Clicking OK reveals the right panel. Already-acknowledged
+    // slides (Back-nav / resume) render instantly, no OK, panel already shown.
+    if (acked) {
+      if (typeHandle) { typeHandle.cancel(); typeHandle = null; }
+      $('slide-main').innerHTML = mainHtml();
+      $('ok-ack').hidden = true;
+    } else if (slideChanged) {
+      $('ok-ack').hidden = true;
+      typeHandle = App.typewriter.run($('slide-main'), main, () => { $('ok-ack').hidden = false; });
+    } // else: unacked & mid-typing / awaiting OK — leave the text + OK button as-is
+
+    // reveal-state classes on #app (single source of truth for the layout)
+    const app = document.getElementById('app');
+    app.classList.toggle('pre-ack', !acked && !single);
+    app.classList.toggle('revealed', acked || single);
+    app.classList.toggle('has-right', !single);
+    app.classList.toggle('view-left', s.mobileView !== 'right');
+    app.classList.toggle('view-right', s.mobileView === 'right');
+    $('panel-switch').textContent = s.mobileView === 'right' ? '‹' : '›';
+
     // single-column slides (end pages) hide the right panel and go full width
-    const single = !!slide.single;
     document.querySelector('.content').classList.toggle('single', single);
     document.getElementById('right').classList.toggle('u-hide', single);
 
@@ -95,5 +126,5 @@ App.slides = (function () {
     });
   }
 
-  return { render };
+  return { render, skipTyping };
 })();

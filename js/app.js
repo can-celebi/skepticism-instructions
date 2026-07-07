@@ -81,6 +81,15 @@ window.App = window.App || {};
     $('ex-prev').addEventListener('click', () => App.state.setExampleCase(App.state.get().exampleCase - 1));
     $('ex-next').addEventListener('click', () => App.state.setExampleCase(App.state.get().exampleCase + 1));
 
+    // acknowledge (OK) + click-to-skip the typewriter
+    $('ok-ack').addEventListener('click', () => App.state.acknowledge());
+    $('slide-main').addEventListener('click', () => App.slides.skipTyping());
+
+    // mobile one-panel switcher (edge arrow tab)
+    $('panel-switch').addEventListener('click', () => {
+      App.state.setMobileView(App.state.get().mobileView === 'right' ? 'left' : 'right');
+    });
+
     // footer nav
     $('next-btn').addEventListener('click', () => App.state.advanceSlide());
     $('back-btn').addEventListener('click', () => App.state.backSlide());

@@ -23,33 +23,70 @@ html, body {
 }
 
 #app {
-  height: 100vh;
+  --reveal-dur: 1s;   /* how long the right task panel takes to grow in — tune freely */
+  height: 100vh;   /* fallback for old browsers */
+  height: 100dvh;  /* PORT: inside the nodegame iframe, call parent.W.adjustFrameHeight() so the frame owns this height instead of the browser viewport */
   max-width: 1040px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
 }
 
-/* two columns fill the space above the footer */
+/* two panels fill the space above the footer. FLEXBOX (not grid) so the reveal can
+   animate a single, smoothly-interpolatable property: the right panel's flex-basis.
+   Left is flex:1 → it auto-fills whatever the right panel leaves, so as the right
+   grows 0% → 50% the left narrows 100% → 50% in one continuous motion. */
 .content {
   flex: 1 1 auto;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
 }
 
 .panel-left {
+  flex: 1 1 0;
+  min-width: 0;
   overflow: auto;
   border-right: 1px solid var(--line);
 }
 .left-scroll { padding: 36px 28px; }
 
 .panel-right {
-  overflow: hidden;
+  flex: 0 0 50%;                 /* revealed width */
+  min-width: 0;
+  overflow: hidden;             /* clip content while the panel is narrow */
   display: flex;
   flex-direction: column;
+  transition: flex-basis var(--reveal-dur) ease-in-out;
 }
 .ui-scroll { flex: 1 1 auto; overflow: auto; padding: 8px 20px 20px; }
+
+/* ---- acknowledge / reveal states (desktop) ----
+   pre-ack = text only: the right (task) panel has ZERO width; the left fills the row.
+   Clicking OK removes .pre-ack → flex-basis animates 0% → 50% (see the transition on
+   .panel-right), smoothly growing the panel in while the left narrows to meet it. */
+#app.pre-ack .panel-right { flex-basis: 0%; }
+
+/* ---- mobile edge-tab switcher (hidden on desktop) ---- */
+.panel-switch {
+  display: none;
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  width: 34px;
+  height: 88px;
+  border: 1px solid var(--line);
+  background: #000;
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+}
+#app.view-left  .panel-switch { right: 0; border-radius: 12px 0 0 12px; }
+#app.view-right .panel-switch { left: 0;  border-radius: 0 12px 12px 0; }
 
 /* footer spans the full width of both columns */
 .app-footer {
@@ -63,15 +100,28 @@ html, body {
   background: #fff;
 }
 
-/* phone / narrow: stack — graphics on top, text below; footer stays at bottom */
+/* phone / narrow: ONE panel at a time — no width animation, just show/hide. The
+   reveal/view classes pick which panel is visible; the visible one fills the row.
+   An edge tab flips between them. */
 @media (max-width: 820px) {
-  .content { grid-template-columns: 1fr; }
-  .panel-left { order: 2; border-right: none; border-top: 1px solid var(--line); }
-  .panel-right { order: 1; overflow: visible; }
-  .ui-scroll { overflow: visible; }
-}
+  .panel-left { border-right: none; flex-basis: 100%; }
+  .panel-right { overflow: auto; flex-basis: 100%; transition: none; }
 
-/* single-column end pages */
-.content.single { grid-template-columns: 1fr; }
+  /* pre-ack: only the instruction text */
+  #app.pre-ack .panel-right { display: none; }
+
+  /* revealed: show whichever panel mobileView selects, hide the other */
+  #app.revealed.view-left  .panel-right { display: none; }
+  #app.revealed.view-left  .panel-left  { display: block; }
+  #app.revealed.view-right .panel-left  { display: none; }
+  #app.revealed.view-right .panel-right { display: flex; }
+  #app.revealed .panel-left, #app.revealed .panel-right { animation: panel-fade .25s ease; }
+
+  /* the switcher only makes sense once revealed and only when a right panel exists */
+  #app.revealed.has-right .panel-switch { display: flex; }
+}
+@keyframes panel-fade { from { opacity: 0.35; } to { opacity: 1; } }
+
+/* single-column end pages (right panel is hidden via JS; left fills the row) */
 .content.single .panel-left { border-right: none; }
 .content.single .slide-card { max-width: 620px; }
