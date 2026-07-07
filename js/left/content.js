@@ -44,14 +44,14 @@ App.content = {
     },
     // 4 — disclosure
     {
-      id: 'disclosure', scene: 'disclosure', title: 'what they show', manualGate: true,
+      id: 'disclosure', scene: 'disclosure', title: 'displayed reviews', manualGate: true,
       steps: [
         { text: ['The seller can choose to show <span id="lx-w-none">none</span>, <span id="lx-w-some">some</span> or <span id="lx-w-all">all</span> of the 10 product reviews.'] },
       ],
     },
     // 5 — bid
     {
-      id: 'bid', scene: 'bid', title: 'your bid', manualGate: true,
+      id: 'bid', scene: 'bid', title: 'bid', manualGate: true,
       steps: [
         { text: [
           'You only see the reviews selected by the seller.',
@@ -61,7 +61,7 @@ App.content = {
     },
     // 6 — price & trade
     {
-      id: 'price', scene: 'price', title: 'the trade', manualGate: true,
+      id: 'price', scene: 'price', title: 'trade', manualGate: true,
       steps: [
         { text: [
           'After you make your <span class="lx-red">bid</span>, a <span class="lx-blue">sales price</span> is picked around the product\'s true value.',
@@ -71,7 +71,7 @@ App.content = {
     },
     // 7 — earnings
     {
-      id: 'earnings', scene: 'earnings', title: 'the payoff', manualGate: true,
+      id: 'earnings', scene: 'earnings', title: 'payoff', manualGate: true,
       steps: [
         { text: [
           '<span class="lx-mini-title">When a trade takes place</span> <button class="lx-inline-info" data-info="tradeRule" aria-label="more info">i</button>',
@@ -98,16 +98,16 @@ App.content = {
     {
       id: 'payment-overview', title: 'payment',
       steps: [{ text: [
-        'You will play <strong>5 main rounds</strong> and <strong>2 additional rounds</strong> as a buyer.',
+        'You will play <span class="lx-key">5 main rounds</span> and <span class="lx-key">2 additional rounds</span> as a buyer.',
         'In each round you are matched with a different seller and decide how much to bid after seeing the reviews that seller shows you.',
-        'At the end, <strong>two</strong> rounds are randomly selected for your bonus: one main round and one additional round.',
+        'At the end, <span class="lx-key">two</span> rounds are randomly selected for your bonus: one main round and one additional round.',
       ] }],
     },
     {
       id: 'bonus-payment', title: 'bonus', scene: 'finalNote', manualGate: true,
       steps: [{ text: [
-        'Your bonus is the <strong>sum of your earnings</strong> from the two selected rounds.',
-        'You may earn or lose stars in each round. Stars convert to money at <strong>£5 per star</strong>, and you can earn or lose up to <strong>£10</strong> per round.',
+        'Your bonus is the <span class="lx-key">sum of your earnings</span> from the two selected rounds.',
+        'You may earn or lose stars in each round. Stars convert to money at <span class="lx-key">£5 per star</span>, and you can earn up to <span class="lx-key">£10</span> over the two rounds.',
         'If your total from this task is negative, the loss is deducted from your other bonus payments.',
       ] }],
     },
@@ -118,7 +118,7 @@ App.content = {
     tradeRule: {
       title: 'When does a trade happen?',
       lines: [
-        'A trade takes place when your <span class="lx-red">bid</span> is at least the <span class="lx-blue">price</span>.',
+        'A trade takes place when <span class="lx-red">bid</span> ≥ <span class="lx-blue">price</span>.',
         'If there is no trade, neither you nor the seller earns anything.',
       ],
     },

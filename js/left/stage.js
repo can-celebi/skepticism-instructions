@@ -98,12 +98,13 @@ App.stage = (function () {
     const sl = SLIDES[S.i];
     $('lx-step-label').textContent = `${S.i + 1} / ${SLIDES.length}`;
     $('lx-title').textContent = sl.title || '';
+    $('lx-title').classList.toggle('lx-title-ex', sl.scene === 'exBid');   // ultra-thin gray title that breathes to black
     refreshNav();
     document.querySelectorAll('#lx-dots .lx-dot').forEach((d) => { const n = +d.dataset.i; d.classList.toggle('done', n < S.i); d.classList.toggle('current', n === S.i); });
     const info = $('lx-info-btn'); info.hidden = !sl.info; info.onclick = sl.info ? () => showInfo(sl.info) : null;
   }
   let distChart = null;
-  function closeInfo() { $('lx-info-panel').hidden = true; if (distChart) { distChart.destroy(); distChart = null; } document.removeEventListener('click', outsideInfo, true); }
+  function closeInfo() { const wasOpen = !$('lx-info-panel').hidden; $('lx-info-panel').hidden = true; if (distChart) { distChart.destroy(); distChart = null; } document.removeEventListener('click', outsideInfo, true); if (wasOpen && active && active.onInfoClosed) active.onInfoClosed(); }
   function outsideInfo(e) { const p = $('lx-info-panel'); if (p.hidden) return; if (p.contains(e.target) || (e.target.closest && e.target.closest('.lx-inline-info'))) return; closeInfo(); }
   function showInfo(key) {
     const info = App.content.INFO[key]; if (!info) return;
@@ -172,7 +173,7 @@ App.stage = (function () {
     $('lx-ok').addEventListener('click', advanceStep);
     $('lx-main').addEventListener('click', (e) => {
       const btn = e.target.closest('.lx-inline-info');
-      if (btn) { e.stopPropagation(); showInfo(btn.dataset.info); return; }
+      if (btn) { e.stopPropagation(); btn.classList.add('lx-info-seen'); showInfo(btn.dataset.info); return; }   // stop nagging once opened
       if (typeHandle) typeHandle.skip();
     });
     $('lx-next').addEventListener('click', () => go(S.i + 1));

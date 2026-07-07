@@ -37,7 +37,11 @@ App.lx = (function () {
   };
   function colorFor(v, i, o) {
     const sel = o.selected ? o.selected.has(i) : true;
-    if (o.aid && o.tv != null) { const a = sel ? 1 : 0.28; return v >= o.tv ? `rgba(128,0,128,${a})` : `rgba(230,130,0,${a})`; }
+    if (o.aid && o.tv != null) {
+      const a = sel ? 1 : 0.28, rv = round1(v), rt = round1(o.tv);
+      if (rv === rt) return `rgba(153,153,153,${a})`;                     // reads as the true value (to 1 dp) → gray
+      return rv > rt ? `rgba(128,0,128,${a})` : `rgba(230,130,0,${a})`;   // above → purple, below → orange
+    }
     if (o.dimUnselected) return sel ? '#111' : 'rgba(0,0,0,0.16)';
     return '#111';
   }

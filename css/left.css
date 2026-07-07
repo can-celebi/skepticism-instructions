@@ -8,6 +8,11 @@
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+
+/* honour the OS reduced-motion setting */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
 html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink); background: #fff; }
 
 #lx-app {
@@ -25,6 +30,16 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-step-label { font-size: 13px; letter-spacing: 1px; color: var(--muted); }
 .lx-info-btn { border: 1px solid var(--line); background: #fff; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; color: var(--purple); font-size: 13px; }
 .lx-title { font-size: 11px; letter-spacing: 3.5px; text-transform: uppercase; text-align: right; font-weight: 400; color: #b6afc7; margin: 0 0 22px; }
+/* examples: same size as other titles, thinner; a very slow, professional gray↔dark colour drift */
+.lx-title.lx-title-ex {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px; font-weight: 200; letter-spacing: 3px;
+  animation: lx-title-breathe 9s ease-in-out infinite;
+}
+@keyframes lx-title-breathe {
+  0%, 100% { color: #cfcfcf; }
+  50%      { color: #2a2a2a; }
+}
 .lx-main .lx-para { margin: 0 0 4px; }
 .lx-main .stmt, .lx-main p { font-size: 18px; line-height: 1.6; color: #333; margin: 0 0 12px; }
 .lx-main strong { color: #000; }
@@ -87,7 +102,11 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-stars-q { display: inline-flex; gap: 2px; font-size: 26px; color: var(--gray); }
 .lx-qstar { color: #bbb; }
 
-/* two-panel */
+/* two-panel + phone-feed upward swipe */
+.lx-swipe-host { position: relative; overflow: hidden; }
+.lx-swipe-track { position: relative; will-change: transform; }
+.lx-imgcard { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; }
+.lx-window { max-width: 520px; margin: 0 auto; }
 .lx-two { display: flex; gap: 18px; align-items: flex-start; justify-content: center; }
 .lx-two-l, .lx-two-r { flex: 1 1 0; }
 .lx-two-l { text-align: center; }
@@ -350,6 +369,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
   transform-origin: center; animation: lx-jiggle 2.6s ease-in-out infinite, lx-glow 2.6s ease-in-out infinite;
 }
 .lx-inline-info:hover { border-color: #3a5687; color: #3a5687; animation: none; }
+.lx-inline-info.lx-info-seen { animation: none; box-shadow: none; }   /* once opened, stop shaking/radiating */
 /* multi-faceted wobble: rotate + drift + scale, in an irregular burst then rest */
 @keyframes lx-jiggle {
   0%, 68%, 100% { transform: translate(0,0) rotate(0) scale(1); }
@@ -360,8 +380,8 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
   87% { transform: translate(-0.2px,0.1px) rotate(-2deg) scale(1.01); }
 }
 @keyframes lx-glow {
-  0%, 60%, 100% { box-shadow: 0 0 0 0 rgba(95,118,160,.30); }
-  72% { box-shadow: 0 0 0 4px rgba(95,118,160,0); }
+  0%, 55%, 100% { box-shadow: 0 0 0 0 rgba(220,53,69,.55); }
+  72% { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
 }
 
 /* prominent true value heading */
@@ -371,6 +391,10 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 @keyframes lx-tvpop { 0% { transform: scale(1); } 30% { transform: scale(1.12); } 100% { transform: scale(1); } }
 
 /* visual-aid legend */
+/* min / avg / max — minimalist, mobile-friendly */
+.lx-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; margin-top: 10px; font-size: 11px; letter-spacing: .4px; color: #a0a0a0; }
+.lx-stats span { display: inline-flex; align-items: baseline; gap: 5px; text-transform: uppercase; }
+.lx-stats b { font-family: 'Courier New', monospace; font-weight: 400; font-size: 13px; color: #555; }
 .lx-aidlegend { display: flex; gap: 16px; justify-content: center; font-size: 11px; margin-top: 12px; color: var(--muted); }
 .lx-aidlegend .lg { display: inline-flex; align-items: center; gap: 5px; }
 .lx-aidlegend .lg::before { content: ''; width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
@@ -382,7 +406,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-sep { height: 1px; background: var(--line); margin: 18px auto; max-width: 330px; }
 
 /* none / some / all bolding */
-.lx-bold { font-weight: 900; color: #000; }
+.lx-bold { font-weight: 400; color: #1a1a1a; border-bottom: 1px solid #c9c9c9; padding-bottom: 2px; }
 
 /* orange guidance line */
 .lx-guide { color: #a48fd0; font-size: 12px; text-align: center; margin-top: 8px; max-width: 420px; }
@@ -402,6 +426,16 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 @keyframes lx-spin2 { to { transform: rotate(720deg); } }
 .lx-bluedie2.spin3 { animation: lx-spin3 1.6s ease; }
 @keyframes lx-spin3 { to { transform: rotate(1080deg); } }
+/* idle shake to invite a click while we wait for the subject to draw a price */
+.lx-bluedie2.lx-nudge { animation: lx-dienudge 1.4s ease-in-out infinite; }
+@keyframes lx-dienudge {
+  0%, 58%, 100% { transform: translate(0,0) rotate(0); }
+  64% { transform: translate(-1.6px,0) rotate(-9deg); }
+  70% { transform: translate(1.6px,0) rotate(9deg); }
+  76% { transform: translate(-1.1px,0) rotate(-6deg); }
+  82% { transform: translate(1px,0) rotate(4deg); }
+  88% { transform: translate(0,0) rotate(0); }
+}
 
 /* out-of-bounds warning — stands alone (trade/payoff hidden) so give it room + a bold icon */
 .lx-oob { color: #c0512e; font-size: 14px; text-align: center; margin: 40px 0; display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -415,11 +449,13 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-slogan .lx-final-line:first-child { margin-top: 0; }
 .lx-recap { min-height: 1.4em; }
 /* closing directive on the final slide */
-.lx-finalnote { text-align: center; max-width: 520px; margin: 26px auto 0; }
-.lx-fn-lead { font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 200; font-size: 20px; letter-spacing: .5px; color: #a48fd0; min-height: 1.4em; }
-.lx-fn-sub { font-size: 13px; color: #8a8a8a; letter-spacing: .3px; margin-top: 24px; min-height: 1.2em; }
+.lx-finalnote { text-align: center; max-width: 520px; margin: 26px auto 0; font-family: 'Helvetica Neue', Arial, sans-serif; text-transform: uppercase; }
+.lx-fn-lead { font-weight: 100; font-size: 13px; letter-spacing: 2.5px; line-height: 1.7; color: #a48fd0; min-height: 1.4em; }
+.lx-fn-sub { font-weight: 100; font-size: 11px; letter-spacing: 2px; line-height: 1.7; color: #9a9a9a; margin-top: 22px; min-height: 1.2em; }
 /* advice line in a consistent subtle accent across all examples */
 .lx-advice { margin-top: 26px; color: #8a7fb0; }
+.lx-advice.lx-advice-happy { color: #9184ac; }                                   /* darker, faded purple */
+.lx-advice.lx-advice-happy .lx-key { color: #d75f97; border-bottom-color: #f0bcd4; }   /* "believe" stays pink */
 .lx-advice > * { margin: 8px 0 0; }
 .lx-advice > *:first-child { margin-top: 0; }
 .lx-calc-box .stmt { margin: 0 0 8px; }
