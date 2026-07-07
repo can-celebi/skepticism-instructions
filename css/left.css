@@ -1,0 +1,464 @@
+/* left.css — styling for the left-column instructions prototype (all lx-* classes). */
+:root {
+  --mono: 'Courier New', Courier, monospace;
+  --ink: #222; --muted: #666; --line: #ddd;
+  --gold: #f5b301; --gray: #dcdcdc;
+  --red: #dc3545; --blue: #1769c0; --purple: #6f42c1;
+  --reveal-dur: 1s;               /* the v5 split-reveal duration (tune freely) */
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink); background: #fff; }
+
+#lx-app {
+  height: 100vh; height: 100dvh;   /* PORT: inside nodegame iframe call parent.W.adjustFrameHeight() */
+  max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column;
+}
+.lx-content { flex: 1 1 auto; min-height: 0; display: flex; }
+.lx-col { min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
+#lx-col-a { flex: 1 1 0; }
+.lx-scroll { flex: 1 1 auto; overflow: auto; padding: 30px 30px 20px; }
+
+/* ---------- text block ---------- */
+.lx-textblock { max-width: 575px; margin: 0 auto; }
+.lx-head-row { display: flex; align-items: center; justify-content: space-between; }
+.lx-step-label { font-size: 13px; letter-spacing: 1px; color: var(--muted); }
+.lx-info-btn { border: 1px solid var(--line); background: #fff; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; color: var(--purple); font-size: 13px; }
+.lx-title { font-size: 11px; letter-spacing: 3.5px; text-transform: uppercase; text-align: right; font-weight: 400; color: #b6afc7; margin: 0 0 22px; }
+.lx-main .lx-para { margin: 0 0 4px; }
+.lx-main .stmt, .lx-main p { font-size: 18px; line-height: 1.6; color: #333; margin: 0 0 12px; }
+.lx-main strong { color: #000; }
+/* thin, title-like emphasis for a lead line (e.g. "When a trade takes place") */
+.lx-mini-title { font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 200; font-size: 21px; letter-spacing: .4px; color: #1a1a1a; }
+.lx-main .stmt.typing p:last-child::after,
+.lx-para.typing::after { content: ''; }
+.lx-ok {
+  font-family: var(--mono); font-size: 13px; font-weight: 400; letter-spacing: 2px; margin: 6px 0 4px;
+  padding: 8px 22px; border-radius: 3px; border: 1px solid #cfcfcf; background: transparent; color: #333; cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .12s ease;
+}
+.lx-ok.show { animation: lx-appear .7s ease; }
+.lx-ok:hover { border-color: #333; background: #00000006; transform: translateY(-1px); }
+@keyframes lx-appear { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* OK + follow-up text below the animation (left aligned, generously spaced) */
+.lx-below { max-width: 575px; margin: 42px auto 0; text-align: left; }
+.lx-below-text .lx-para { margin: 0 0 18px; }
+.lx-below-text p, .lx-below-text .stmt { font-size: 18px; line-height: 1.65; color: #333; margin: 0 0 18px; }
+.lx-below-text .stmt + .stmt { margin-top: 20px; }
+.lx-below-text strong { color: #000; }
+.lx-ic { display: inline-block; width: 1.5em; }
+.lx-lead { display: block; font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin: 6px 0 2px; }
+.lx-gap { display: block; height: 10px; }
+.lx-buyer-line {
+  display: block; text-align: center; margin: 34px auto 8px;
+  font-size: 14px; font-weight: 400; letter-spacing: 5px; text-transform: uppercase;
+  color: #7a7a7a;
+}
+.lx-buyer-line strong {
+  font-weight: 400; color: #1a1a1a;
+  border-bottom: 1px solid #c9c9c9; padding-bottom: 3px;
+}
+/* subtle "click next to proceed" hint that fades in when the gate opens */
+.lx-nexthint { text-align: center; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 100; text-transform: uppercase; letter-spacing: 3px; font-size: 11px; color: #b3a6d0; margin: 26px auto 0; max-width: 575px; opacity: 0; transition: opacity .6s ease; }
+.lx-nexthint.show { opacity: 1; }
+/* second sentence flows normally within the reading column, aligned like the rest */
+.lx-below-text .lx-wideline { display: inline; }
+/* key word emphasis in the "you are the buyer" flavor — hairline underline, no bold */
+.lx-key { font-weight: 400; color: #1a1a1a; border-bottom: 1px solid #c9c9c9; padding-bottom: 2px; }
+
+/* ---------- stage ---------- */
+.lx-stage { max-width: 575px; margin: 34px auto 0; }
+#lx-col-b .lx-stage { max-width: none; }
+.lx-scene-center { text-align: center; }
+.lx-box-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #8a7fb0; font-weight: 600; margin: 0 0 6px; }
+.lx-box-title.lx-mt { margin-top: 16px; }
+.lx-cue { text-align: center; color: #9a93ad; font-weight: 400; font-size: 12.5px; letter-spacing: .3px; margin: 8px 0; opacity: .8; transition: opacity .45s ease; }
+.lx-cue.hide { opacity: 0; pointer-events: none; }
+.lx-pop { animation: lx-pop .32s ease; }
+@keyframes lx-pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+
+/* product card */
+.lx-product { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; }
+.lx-shoe { width: 190px; height: 130px; object-fit: contain; }
+.lx-shoe-blank { background: #f3f3f3; border-radius: 10px; }
+.lx-val { font-size: 38px; font-weight: 900; line-height: 1; }
+.lx-val-label { font-size: 12px; color: var(--muted); }
+.lx-stars-q { display: inline-flex; gap: 2px; font-size: 26px; color: var(--gray); }
+.lx-qstar { color: #bbb; }
+
+/* two-panel */
+.lx-two { display: flex; gap: 18px; align-items: flex-start; justify-content: center; }
+.lx-two-l, .lx-two-r { flex: 1 1 0; }
+.lx-two-l { text-align: center; }
+/* slide 2 "Reviews you see" — slicker + centred over the list (was left-heavy) */
+.lx-two-r .lx-box-title { text-align: center; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 300; letter-spacing: 2.5px; color: #8a7fb0; }
+
+/* review list */
+.lx-revlist { display: flex; flex-direction: column; gap: 5px; }
+.lx-rev { display: flex; align-items: center; gap: 10px; padding: 3px 6px; border-left: 3px solid transparent; border-radius: 6px; }
+.lx-rev.clickable, .lx-revlist.clickable .lx-rev { cursor: pointer; }
+.lx-revlist.clickable .lx-rev:hover { background: #0000000a; }
+.lx-rev.sel { background: #0000000a; border-left-color: #111; }
+.lx-rev.dim { opacity: .38; }
+.lx-rev.hi .lx-rev-num { color: rgb(128,0,128); }
+.lx-rev.lo .lx-rev-num { color: rgb(230,130,0); }
+.lx-rev-num { font-weight: 700; min-width: 2.4em; text-align: right; }
+.lx-rev-empty { color: var(--muted); font-style: italic; padding: 8px 6px; border: 1px dashed var(--line); border-radius: 8px; }
+
+/* stars (stars.js output; not loaded from sandbox.css here) */
+.stars { display: inline-flex; gap: 2px; font-size: 20px; line-height: 1; }
+.star { position: relative; color: var(--gray); }
+.star-fill { position: absolute; left: 0; top: 0; overflow: hidden; color: var(--gold); white-space: nowrap; }
+
+/* ---------- controls ---------- */
+.lx-controls { max-width: 575px; margin: 14px auto 0; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; justify-content: center; }
+.lx-die-wrap { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+.lx-die { background: transparent; border: none; padding: 4px; border-radius: 8px; cursor: pointer; display: inline-flex; }
+.lx-die img { height: 40px; display: block; }
+.lx-die.sm img { height: 28px; }
+.lx-die:hover { opacity: .8; }
+.lx-die.spin img { animation: lx-spin .4s ease; }
+.lx-die.held { box-shadow: 0 0 0 3px rgba(17,17,17,.22); }
+.lx-die.held img { animation: lx-pulse 1s ease-in-out infinite; }
+@keyframes lx-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes lx-pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+.lx-lock { border: none; background: transparent; font-size: 18px; cursor: pointer; }
+.lx-lock.open { opacity: .5; }
+.lx-die-lab { font-size: 12px; color: var(--muted); }
+.lx-ticks-row { display: inline-flex; gap: 14px; }
+.lx-tick { font-size: 13px; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+.lx-blue-die { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 7px 12px; cursor: pointer; font-family: var(--mono); font-size: 13px; display: inline-flex; align-items: center; gap: 7px; }
+.lx-blue-die:hover { background: #eef4fb; }
+.lx-blue-dot { width: 14px; height: 14px; border-radius: 3px; background: var(--blue); display: inline-block; }
+
+/* ---------- bid ---------- */
+.lx-bid-area { margin-top: 16px; }
+.lx-bidbox { text-align: center; transition: opacity .35s ease; }
+.lx-bidbox.done .lx-slider-wrap, .lx-bidbox.done #lx-bid-btn { opacity: .35; pointer-events: none; }
+.lx-bidbox.done .lx-bid-title, .lx-bidbox.done #lx-bidval { display: none; }   /* the reveal row shows the bid instead */
+.lx-bid-title { font-size: 20px; }
+.lx-bidval { font-size: 44px; font-weight: 900; line-height: 1; }
+.lx-slider-wrap { max-width: 380px; margin: 6px auto 0; }
+.lx-slider-wrap input[type=range] { width: 100%; -webkit-appearance: none; appearance: none; background: transparent; margin: 12px 0 0; }
+.lx-slider-wrap input[type=range]::-webkit-slider-runnable-track { background: #0000002e; height: .3rem; border-radius: .5rem; }
+.lx-slider-wrap input[type=range]::-moz-range-track { background: #0000002e; height: .3rem; border-radius: .5rem; }
+.lx-slider-wrap input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 34px; height: 34px; border-radius: 50%; background: #000; transform: translateY(-15px); box-shadow: 0 3px 6px rgba(0,0,0,.5); cursor: pointer; }
+.lx-slider-wrap input[type=range]::-moz-range-thumb { width: 34px; height: 34px; border-radius: 50%; background: #000; border: none; box-shadow: 0 3px 6px rgba(0,0,0,.5); cursor: pointer; }
+.lx-ticks { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; margin-top: 4px; }
+.lx-btn { font-family: var(--mono); font-size: 14px; font-weight: 400; letter-spacing: 1px; padding: 9px 22px; border-radius: 3px; border: 1px solid #000; background: #000; color: #fff; cursor: pointer; margin-top: 12px; transition: border-color .15s ease, background .15s ease, transform .12s ease; }
+/* minimal, unfilled variant (Place bid) */
+.lx-btn.ghost { background: transparent; color: #333; border-color: #cfcfcf; }
+.lx-btn.ghost:hover { border-color: #333; background: #00000006; }
+.lx-btn:hover { transform: translateY(-1px); }
+
+.lx-bid-outcome { margin-top: 16px; text-align: center; }
+.lx-reveal-row { display: flex; align-items: baseline; justify-content: center; gap: 12px; }
+.lx-reveal-lab { font-size: 20px; }
+.lx-reveal-num { font-size: 44px; font-weight: 900; line-height: 1.1; }
+.lx-tvc { color: #000; } .lx-bidc { color: var(--red); }
+.lx-try { margin-top: 10px; font-family: var(--mono); font-size: 14px; background: none; border: none; color: var(--muted); cursor: pointer; text-decoration: underline; }
+
+/* ---------- line graph ---------- */
+.lx-line { position: relative; height: 36px; margin: 34px 0 30px; }
+.lx-axis { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: #ccc; }
+.lx-band { position: absolute; top: 6px; bottom: 6px; background: rgba(23,105,192,0.10); border: 1px dashed #9bbfe0; border-radius: 4px; }
+.lx-line.bid-black .lx-bidm { background: #000; }
+.lx-line.bid-black .lx-bidm .lx-tag-num, .lx-line.bid-black .lx-bidm .lx-tag-lab { color: #000; }
+.lx-mark { position: absolute; top: 4px; width: 3px; height: 32px; transform: translateX(-1.5px); border-radius: 2px; }
+.lx-mark.lx-tv { background: #000; }
+.lx-mark.lx-bidm { background: var(--red); }
+.lx-mark.lx-price { background: var(--blue); }
+.lx-mark.lx-price.lx-price-appear { animation: lx-priceappear 1s ease; transform-origin: bottom; }
+@keyframes lx-priceappear { from { opacity: 0; transform: translateX(-1.5px) scaleY(.25); } to { opacity: 1; transform: translateX(-1.5px) scaleY(1); } }
+.lx-ends { position: absolute; left: 0; right: 0; top: 100%; display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
+.lx-legend { display: flex; gap: 14px; justify-content: center; font-size: 13px; margin-top: 14px; }
+.lx-lg b { font-size: 15px; }
+.lx-lg.lg-tv b { color: #000; } .lx-lg.lg-bid b { color: var(--red); } .lx-lg.lg-price b { color: var(--blue); }
+
+/* ---------- trade / earnings ---------- */
+.lx-hint { color: var(--muted); font-size: 14px; }
+.lx-split-btn { background: var(--purple); border-color: var(--purple); }
+.lx-trade-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: center; margin-top: 8px; }
+.lx-trade-out { text-align: center; margin-top: 12px; font-weight: 300; min-height: 1.4em; }
+.lx-yes { color: #1a7f4b; } .lx-no { color: var(--red); } .lx-muted { color: var(--muted); font-weight: 400; }
+.lx-calc { justify-content: center; display: flex; margin-top: 12px; }
+.lx-calc-box { margin-top: 10px; font-size: 13px; }
+.lx-calc-box.plain { background: none; padding: 0; min-height: 84px; }   /* slide 7: reserve the 3-line (trade) height so no-trade doesn't shrink it */
+.lx-calc-box.gray { background: #f4f4f4; border-radius: 8px; padding: 10px 12px; }  /* examples */
+
+/* ---------- examples ---------- */
+.lx-ex-head { display: flex; align-items: baseline; gap: 12px; }
+.lx-ex-count { font-size: 12px; color: var(--muted); }
+.lx-ex-label { font-weight: 700; }
+.lx-ex-note { font-size: 15px; line-height: 1.5; color: #333; }
+.lx-ex-nav { display: flex; gap: 10px; }
+
+/* ---------- info overlay ---------- */
+.lx-info-panel { position: absolute; inset: auto; left: 50%; top: 20%; transform: translateX(-50%); width: min(460px, 90vw); background: #f6f2fb; border: 1px solid #e4d8f7; border-radius: 12px; padding: 20px 22px; color: #4a2f7a; box-shadow: 0 8px 30px rgba(0,0,0,.2); z-index: 40; }
+.lx-info-close { float: right; border: 1px solid #d8c8f0; background: #fff; border-radius: 6px; cursor: pointer; padding: 2px 8px; color: #4a2f7a; }
+.lx-info-title { font-size: 18px; margin: 2px 0 12px; }
+.lx-info-body p { font-size: 14px; line-height: 1.6; margin: 0 0 10px; }
+
+/* ---------- footer ---------- */
+/* placeholder chrome — in nodegame this nav lives in the PARENT dom, outside the iframe */
+.lx-footer { flex: 0 0 auto; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px 28px; border-top: 1px solid var(--line); background: #fff; }
+.lx-nav { font-family: var(--mono); font-size: 15px; padding: 9px 22px; border-radius: 8px; border: 1px solid var(--line); background: #fff; cursor: pointer; transition: transform .12s ease, box-shadow .15s ease; }
+.lx-nav.next { background: #000; color: #fff; border-color: #000; }
+.lx-nav:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.14); }
+.lx-nav:disabled { opacity: .4; cursor: not-allowed; }
+/* gentle rhythm pulse on the active nav buttons */
+.lx-nav:not(:disabled) { animation: lx-navbreath 3.6s ease-in-out infinite; }
+@keyframes lx-navbreath { 0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } 50% { box-shadow: 0 3px 13px rgba(0,0,0,.13); } }
+.lx-dots { display: flex; gap: 7px; justify-self: center; overflow: hidden; }
+.lx-dot { width: 8px; height: 8px; border-radius: 50%; background: #d6d6d6; flex: 0 0 auto; }
+.lx-dot.done { background: #9aa0a6; } .lx-dot.current { background: #000; transform: scale(1.25); }
+
+/* ---------- switcher (mobile split only) ---------- */
+.lx-switch { display: none; position: fixed; top: 50%; transform: translateY(-50%); z-index: 60; width: 32px; height: 84px; border: 1px solid var(--line); background: #000; color: #fff; font-size: 26px; cursor: pointer; }
+#lx-app.view-a .lx-switch { right: 0; border-radius: 10px 0 0 10px; }
+#lx-app.view-b .lx-switch { left: 0; border-radius: 0 10px 10px 0; }
+
+/* ---------- v3 additions ---------- */
+.lx-fade { animation: lx-fadein 1.5s ease-in-out; }
+@keyframes lx-fadein { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+/* two coloured sliders (price/earnings): red = bid, black = true value */
+.lx-slider-wrap input.red::-webkit-slider-thumb { background: var(--red); }
+.lx-slider-wrap input.red::-moz-range-thumb { background: var(--red); }
+.lx-slider-wrap input.black::-webkit-slider-thumb { background: #000; }
+.lx-slider-wrap input.black::-moz-range-thumb { background: #000; }
+.lx-yourbid.left { text-align: left; }
+.lx-bidc { color: var(--red); }
+
+/* directive + true-value slider + blue die */
+.lx-directive { color: var(--purple); font-size: 13px; font-weight: 700; text-align: center; margin: 10px 0 4px; }
+.lx-tvtext { text-align: center; font-size: 14px; margin-top: 4px; }
+.lx-tvtext b { font-size: 20px; }
+.lx-tvinline { font-size: 13px; color: var(--muted); margin-left: 12px; }
+.lx-tvinline b { color: #000; }
+.lx-draw-wrap { text-align: center; margin-top: 18px; }
+.lx-bluedie { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; }
+.lx-die-face { font-size: 46px; color: var(--blue); line-height: 1; }
+.lx-bluedie-lab { font-size: 13px; color: var(--blue); font-weight: 700; }
+.lx-bluedie:hover .lx-die-face { opacity: .8; }
+
+/* visual-aid warning */
+.lx-warn { max-width: 575px; margin: 8px auto 0; text-align: center; font-size: 12px; color: #b06a00; }
+
+/* concise trade result */
+.lx-chk { color: #1a7f4b; font-weight: 900; }
+.lx-x { color: var(--red); font-weight: 900; }
+.lx-paren { color: var(--muted); font-weight: 400; }
+.lx-cost-note { color: #b6b6b6; font-size: 10.5px; opacity: .85; }
+.lx-mt { margin-top: 16px; }
+
+.lx-val.lx-q { color: #9a9a9a; font-size: 46px; }
+
+/* normalized bar charts (narrower, centered — matches the original width) */
+.lx-bars { position: relative; height: 150px; margin: 4px auto; max-width: 330px; }
+.lx-bars.sm { height: 118px; }
+
+/* numbers on the line marks */
+.lx-tag { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; white-space: nowrap; line-height: 1.05; }
+.lx-tag.below { top: calc(100% + 3px); }
+.lx-tag.above { bottom: calc(100% + 3px); }
+.lx-tag-num { display: block; font-size: 15px; font-weight: 900; }
+.lx-tag-lab { display: block; font-size: 11px; color: var(--muted); }
+.lx-tv .lx-tag-num { color: #000; }
+.lx-bidm .lx-tag-num, .lx-bidm .lx-tag-lab { color: var(--red); }
+.lx-price .lx-tag-num, .lx-price .lx-tag-lab { color: var(--blue); }
+
+/* reserved slots so nothing shifts when a bid is placed */
+.lx-graphic-slot { min-height: 65px; margin-top: 8px; position: relative; }
+.lx-graphic-slot.empty .lx-line { visibility: hidden; }   /* keep the reserved height, hide only the graph */
+/* subtle prompt shown in the reserved graph space before a bid is placed */
+.lx-guess-prompt { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 14px; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 100; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #b3a6d0; }
+.lx-graphic-slot:not(.empty) .lx-guess-prompt { display: none; }
+/* closeness feedback, revealed well below the graph with plenty of air */
+.lx-score { text-align: center; margin: 46px 0 6px; }
+.lx-score-main { font-size: 30px; font-weight: 300; letter-spacing: 1px; }
+.lx-score-sub { font-size: 13px; font-weight: 400; color: #8a8a8a; letter-spacing: .5px; margin-top: 16px; }
+.lx-score-goal { font-size: 11px; font-weight: 400; color: #b3adc4; letter-spacing: .8px; text-transform: uppercase; margin-top: 24px; }
+.lx-fadein { animation: lx-appear .5s ease; }
+.lx-bid-slot { transition: opacity .2s ease; }
+.lx-bid-slot.gone { visibility: hidden; }
+.lx-yourbid { text-align: center; margin-top: 8px; font-size: 16px; }
+.lx-yourbid b { font-size: 34px; font-weight: 900; }
+.lx-btn-slot { min-height: 54px; display: flex; align-items: center; justify-content: center; margin-top: 6px; }
+.lx-inline-btn { text-align: center; margin: 10px 0; }
+
+/* try again — prominent purple */
+/* art-nouveau-ish: thin outline, letter-spaced, muted — not a filled purple block */
+.lx-try-btn { font-family: var(--mono); font-size: 12.5px; font-weight: 400; letter-spacing: 2.5px; text-transform: lowercase; padding: 8px 22px; border-radius: 2px; border: 1px solid #cdbcec; background: transparent; color: #7a5eb0; cursor: pointer; transition: border-color .15s ease, background .15s ease, transform .12s ease; }
+.lx-try-btn:hover { border-color: #7a5eb0; background: #f7f3fc; transform: translateY(-1px); }
+
+/* payoff cells */
+.lx-pf { display: flex; gap: 22px; justify-content: center; margin-top: 12px; font-weight: 700; }
+.lx-pf-cell b { font-size: 20px; }
+.lx-pf-cell b.lx-neg { color: var(--red); }
+
+/* ---------- v5 additions ---------- */
+/* inline coloured words */
+.lx-red { color: var(--red); font-weight: 400; }
+.lx-blue { color: var(--blue); font-weight: 400; }
+
+/* slide 2 sections */
+.lx-goal { color: var(--purple); }
+.lx-task { color: var(--blue); }
+.lx-hr { display: block; height: 1px; background: var(--line); margin: 10px 0 16px; }
+
+/* slides 6/7 slider groups + subtle hints that fade after use, return on hover */
+.lx-sgroup { margin-top: 30px; }
+/* trade-scene sliders: no numbering; bid spans the full 0–6 axis, tv is inset onto 1–5 */
+.lx-slider-wrap.lx-sw-full { max-width: none; margin: 6px 0 0; }
+.lx-slider-wrap.lx-sw-tv { max-width: none; width: 66.66%; margin: 6px 0 0 16.66%; }
+.lx-shint { height: 15px; font-size: 11px; color: var(--purple); text-align: center; opacity: .7; transition: opacity .25s; }
+.lx-shint.used { opacity: 0; }
+.lx-sgroup:hover .lx-shint { opacity: .9; }
+.lx-svalue { text-align: center; font-size: 14px; margin-top: 2px; }
+/* slide 6/7 value numbers: uniform size, super thin (thin = salient) */
+.lx-svalue b { font-size: 26px; font-weight: 200; font-family: 'Helvetica Neue', Arial, sans-serif; }
+
+/* blue die (the real dice icon, blue) + its price text */
+.lx-price-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 56px 0 4px; }
+.lx-bluedie2 { background: var(--blue); border: none; border-radius: 10px; padding: 7px; cursor: pointer; display: inline-flex; }
+.lx-bluedie2 img { height: 30px; display: block; filter: brightness(0) invert(1); }
+.lx-bluedie2:hover { opacity: .88; }
+.lx-price-txt { font-size: 14px; color: var(--muted); }
+.lx-price-txt b { font-size: 26px; font-weight: 200; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.lx-price-txt b.lx-numpop { animation: lx-tvpop .35s ease; display: inline-block; }
+/* super-subtle direction under the price button; fades out after a manual draw */
+.lx-price-hint { text-align: center; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 100; font-size: 11px; letter-spacing: 1.5px; color: #bcbcbc; margin-top: 12px; transition: opacity .5s ease; }
+
+/* example slogans */
+.lx-slogan { margin-top: 16px; font-size: 16px; font-weight: 700; text-align: center; }
+.lx-strategy { margin-top: 8px; color: var(--purple); }
+
+/* disclosure "shown" box empty state — keeps its height so nothing shifts */
+.lx-shownbox.is-empty { height: 118px; display: flex; align-items: center; justify-content: center; }
+.lx-empty-note { color: var(--muted); font-style: italic; }
+
+/* ---------- v6 additions ---------- */
+/* inline shaking info button next to the sentence */
+.lx-inline-info {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 1px solid #8fa2c2; color: #5f76a0; background: #fff;
+  font: italic 500 10px/1 Georgia, serif;
+  cursor: pointer; vertical-align: middle; margin-left: 5px; position: relative; top: -1px;
+  transform-origin: center; animation: lx-jiggle 2.6s ease-in-out infinite, lx-glow 2.6s ease-in-out infinite;
+}
+.lx-inline-info:hover { border-color: #3a5687; color: #3a5687; animation: none; }
+/* multi-faceted wobble: rotate + drift + scale, in an irregular burst then rest */
+@keyframes lx-jiggle {
+  0%, 68%, 100% { transform: translate(0,0) rotate(0) scale(1); }
+  71% { transform: translate(-0.7px,0.5px) rotate(-11deg) scale(1.08); }
+  75% { transform: translate(0.8px,-0.6px) rotate(10deg) scale(1.05); }
+  79% { transform: translate(-0.6px,0.4px) rotate(-7deg) scale(1.06); }
+  83% { transform: translate(0.5px,-0.3px) rotate(5deg) scale(1.03); }
+  87% { transform: translate(-0.2px,0.1px) rotate(-2deg) scale(1.01); }
+}
+@keyframes lx-glow {
+  0%, 60%, 100% { box-shadow: 0 0 0 0 rgba(95,118,160,.30); }
+  72% { box-shadow: 0 0 0 4px rgba(95,118,160,0); }
+}
+
+/* prominent true value heading */
+.lx-tvhead { text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.lx-tvhead b { display: block; font-size: 30px; font-weight: 900; color: #000; line-height: 1; }
+.lx-tvhead b.lx-tvpop { animation: lx-tvpop .35s ease; }
+@keyframes lx-tvpop { 0% { transform: scale(1); } 30% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+/* visual-aid legend */
+.lx-aidlegend { display: flex; gap: 16px; justify-content: center; font-size: 11px; margin-top: 12px; color: var(--muted); }
+.lx-aidlegend .lg { display: inline-flex; align-items: center; gap: 5px; }
+.lx-aidlegend .lg::before { content: ''; width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.lx-aidlegend .hi::before { background: rgb(128,0,128); }
+.lx-aidlegend .lo::before { background: rgb(230,130,0); }
+.lx-aidlegend .mid::before { background: #999; }
+
+/* thin separator between the two disclosure graphs */
+.lx-sep { height: 1px; background: var(--line); margin: 18px auto; max-width: 330px; }
+
+/* none / some / all bolding */
+.lx-bold { font-weight: 900; color: #000; }
+
+/* orange guidance line */
+.lx-guide { color: #a48fd0; font-size: 12px; text-align: center; margin-top: 8px; max-width: 420px; }
+
+/* staged reveal (slides 6/7) + example slogan */
+.lx-stg { opacity: 0; transition: opacity .5s ease; }
+.lx-stg.show { opacity: 1; }
+/* slow reveal for the slide-3 true value + graph after the initial delay */
+.lx-slowrise { opacity: 0; transform: translateY(10px); transition: opacity 1.3s ease, transform 1.3s ease; }
+.lx-slowrise.show { opacity: 1; transform: none; }
+
+/* blue die: the real dice icon, masked blue */
+.lx-bluedie2 { width: 40px; height: 40px; border: none; padding: 0; cursor: pointer; background-color: var(--blue);
+  -webkit-mask: url(../img/dice.png) center/contain no-repeat; mask: url(../img/dice.png) center/contain no-repeat; }
+.lx-bluedie2:hover { opacity: .85; }
+.lx-bluedie2.spin2 { animation: lx-spin2 .8s ease; }
+@keyframes lx-spin2 { to { transform: rotate(720deg); } }
+.lx-bluedie2.spin3 { animation: lx-spin3 1.6s ease; }
+@keyframes lx-spin3 { to { transform: rotate(1080deg); } }
+
+/* out-of-bounds warning — stands alone (trade/payoff hidden) so give it room + a bold icon */
+.lx-oob { color: #c0512e; font-size: 14px; text-align: center; margin: 40px 0; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.lx-oob-ico { font-size: 30px; line-height: 1; color: #e0892b; }
+
+/* example calc box white; final message */
+.lx-calc-box.white { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-top: 34px; }
+/* example takeaway — calm and airy; salience comes from whitespace, not bold */
+.lx-slogan { margin-top: 52px; font-size: 16px; font-weight: 300; text-align: center; line-height: 1.6; color: #333; }
+.lx-slogan .lx-final-line { margin-top: 16px; }
+.lx-slogan .lx-final-line:first-child { margin-top: 0; }
+.lx-recap { min-height: 1.4em; }
+/* closing directive on the final slide */
+.lx-finalnote { text-align: center; max-width: 520px; margin: 26px auto 0; }
+.lx-fn-lead { font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 200; font-size: 20px; letter-spacing: .5px; color: #a48fd0; min-height: 1.4em; }
+.lx-fn-sub { font-size: 13px; color: #8a8a8a; letter-spacing: .3px; margin-top: 24px; min-height: 1.2em; }
+/* advice line in a consistent subtle accent across all examples */
+.lx-advice { margin-top: 26px; color: #8a7fb0; }
+.lx-advice > * { margin: 8px 0 0; }
+.lx-advice > *:first-child { margin-top: 0; }
+.lx-calc-box .stmt { margin: 0 0 8px; }
+
+/* payoffs — generous spacing, easier to read */
+.lx-pf { display: flex; gap: 100px; justify-content: center; margin: 45px 0; }
+.lx-pf-cell { text-align: center; font-size: 14px; font-weight: 700; }
+.lx-pf-cell b { display: block; font-size: 26px; margin-top: 4px; }
+.lx-trade-out { margin-top: 44px; }
+
+/* distribution mini-chart in the info box */
+.lx-dist { height: 150px; margin: 12px 0 6px; }
+.lx-dist-lab { text-align: center; font-size: 13px; margin-top: 4px; color: #444; }
+.lx-dist-lab b { font-size: 16px; }
+/* slider (1–5) reuses .lx-slider-wrap .lx-sw-tv so it inherits the styled track/thumb and axis inset */
+.lx-info-hint { color: #d0964e; font-size: 11px; font-weight: 400; letter-spacing: .2px; opacity: .7; margin: 44px 0 0; }
+
+/* slide 5 tighter gap between the bars and the line */
+.lx-graphic-slot.tight { min-height: 96px; }
+.lx-bars.sm { margin-bottom: 2px; }
+
+/* ---------- mobile ---------- */
+@media (max-width: 820px) {
+  .lx-scroll { padding: 22px 18px; }
+  /* footer: keep Back/Next comfortable; the dots live in a clipped centre column so they never push Next off */
+  .lx-footer { padding: 8px 12px; gap: 8px; }
+  .lx-nav { font-size: 14px; padding: 11px 18px; }        /* bigger touch target */
+  .lx-dots { gap: 4px; }
+  .lx-dot { width: 5px; height: 5px; }
+  /* touch-friendly action buttons on phones */
+  .lx-ok, .lx-btn, .lx-try-btn { font-size: 14px; padding: 12px 26px; min-height: 44px; }
+  .lx-two { gap: 10px; }                 /* stay side-by-side on mobile */
+  .lx-two .lx-shoe { width: 120px; height: 86px; }
+  .lx-two .stars { font-size: 15px; }
+  /* when split, show one column at a time + the edge switcher */
+  #lx-app.split-open .lx-content { position: relative; }
+  #lx-app.split-open #lx-col-a, #lx-app.split-open #lx-col-b { flex: 1 1 100%; }
+  #lx-app.split-open.view-a #lx-col-b { display: none; }
+  #lx-app.split-open.view-b #lx-col-a { display: none; }
+  #lx-app.split-open #lx-col-b { border-left: none; }
+  #lx-app.split-open .lx-switch { display: flex; align-items: center; justify-content: center; }
+}

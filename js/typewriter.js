@@ -24,8 +24,9 @@ App.typewriter = (function () {
     });
   }
 
-  // run(el, statements, onDone) → { skip(), cancel() }
-  function run(el, statements, onDone) {
+  // run(el, statements, onDone, opts) → { skip(), cancel() }.  opts.speed overrides ms/char.
+  function run(el, statements, onDone, opts) {
+    const speed = (opts && opts.speed) || SPEED;
     const mine = ++gen;
     el.innerHTML = '';
     let finished = false;
