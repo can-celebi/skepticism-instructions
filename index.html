@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reimagined Instructions — prototype</title>
-  <link rel="stylesheet" href="./css/layout.css?v=11" />
-  <link rel="stylesheet" href="./css/slides.css?v=11" />
-  <link rel="stylesheet" href="./css/sandbox.css?v=11" />
+  <link rel="stylesheet" href="./css/layout.css?v=12" />
+  <link rel="stylesheet" href="./css/slides.css?v=12" />
+  <link rel="stylesheet" href="./css/sandbox.css?v=12" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 </head>
@@ -59,22 +59,23 @@
                 <span class="tut-topbar-label">new product</span>
               </div>
 
-              <div id="disclosed-block" class="chart-block" data-min-slide="4">
-                <div class="chart-title-row">
-                  <span class="chart-title" id="disc-title">Disclosed reviews</span>
-                  <button id="rerandom-btn" class="dice-mini" title="new product & reviews"><img src="./img/dice.png" alt="dice" /></button>
+              <!-- reviews as vertical star lists: all-10 (left, click to disclose) + disclosed (right) -->
+              <div id="reviews-row" class="reviews-row">
+                <div id="all-block" class="chart-block" data-min-slide="3">
+                  <div class="chart-title">The seller's 10 reviews</div>
+                  <div class="review-list" id="all-list"></div>
+                  <div class="stats" id="all-stats"></div>
                 </div>
-                <div class="chart-box">
-                  <canvas id="discChart" width="340" height="150"></canvas>
-                  <div id="no-disclosed" class="no-reviews">No reviews selected</div>
-                </div>
-                <div class="stats" id="disc-stats"></div>
-              </div>
 
-              <div id="all-block" class="chart-block" data-min-slide="3">
-                <div class="chart-title">The seller's 10 reviews</div>
-                <div class="chart-box"><canvas id="allChart" width="340" height="150"></canvas></div>
-                <div class="stats" id="all-stats"></div>
+                <div id="disclosed-block" class="chart-block" data-min-slide="4">
+                  <div class="chart-title-row">
+                    <span class="chart-title" id="disc-title">Disclosed reviews</span>
+                    <button id="rerandom-btn" class="dice-mini" title="new product & reviews"><img src="./img/dice.png" alt="dice" /></button>
+                  </div>
+                  <div class="review-list" id="disc-list"></div>
+                  <div id="no-disclosed" class="no-reviews">No reviews selected</div>
+                  <div class="stats" id="disc-stats"></div>
+                </div>
               </div>
 
               <!-- true value (seller) with product image / stars / lock -->

@@ -8,6 +8,7 @@ App.config = {
   TV_RANGE: { min: 1, max: 5 },
   PRICE_BAND: 1.0,
   PROD_COST_OFFSET: 0.3,
+  STAR_MAX: 6,      // stars are on a 0–6 scale (1:1 with value/bid/price)
 
   N_SLIDES: 13,
 

@@ -4,7 +4,6 @@ window.App = window.App || {};
 
 App.sandbox = (function () {
   const $ = (id) => document.getElementById(id);
-  let allChart = null, discChart = null, allKey = '', discKey = '';
   let lastPayoffRef = null, plTimers = [];
   const pct = (v) => (App.util.clamp(v, 0, 6) / 6) * 100;
   const clearPlTimers = () => { plTimers.forEach(clearTimeout); plTimers = []; };
@@ -99,19 +98,27 @@ App.sandbox = (function () {
 
     show($('tut-topbar'), false); // only the price/trade tutorials use the top die
 
-    // disclosed anchor (slide ≥ 4); title depends on whose view it is
+    // reviews as vertical star lists: all-10 (left) + disclosed (right)
+    show($('reviews-row'), (seller && slide >= 3) || slide >= 4);
     show($('disclosed-block'), slide >= 4);
     $('disc-title').textContent = seller ? "Reviews shown by the seller" : "Reviews seen by the buyer";
     show($('rerandom-btn'), buyer && slide >= 5);
     $('rerandom-btn').classList.toggle('shake', slide === 5 && s.s5 === 'rerandom'); // nudge until clicked
     show($('no-disclosed'), !hasDisc);
-    $('discChart').style.visibility = hasDisc ? 'visible' : 'hidden';
     $('disc-stats').textContent = stats(discValues);
-
-    // seller's 10 reviews (seller, slide ≥ 3)
     show($('all-block'), seller && slide >= 3);
     $('all-stats').textContent = stats(s.reviews);
-    $('allChart').style.cursor = selectable ? 'pointer' : 'default';
+
+    // left list: the seller's 10 reviews (clickable to disclose when selectable)
+    renderReviewList($('all-list'), s.reviews.map((v, i) => ({ v, i })), {
+      selectedSet: new Set(s.disclosed), dimUnselected: selectable,
+      trueValue: s.trueValue, reveal: s.revealColors,
+      onClick: selectable ? (i) => App.state.toggleDisclose(i) : null,
+    });
+    // right list: the disclosed subset the buyer sees (read-only, all "shown")
+    renderReviewList($('disc-list'), discValues.map((v) => ({ v })), {
+      allSelected: true, trueValue: s.trueValue, reveal: s.revealColors, onClick: null,
+    });
 
     // tv-block: intro (slide 1) shows the product + stars; seller slides ≥2 show
     // the true value. Product image is prominent on slides 1–2, then a faded
@@ -178,7 +185,31 @@ App.sandbox = (function () {
       }
     }
 
-    renderCharts(s, seller, payoff, slide, discValues, hasDisc);
+  }
+
+  // build a vertical list of "number + stars" review rows into `container`.
+  // rows: [{v, i?}]. opts: {selectedSet:Set<i>, allSelected, trueValue, reveal, onClick}
+  function renderReviewList(container, rows, opts) {
+    const o = opts || {};
+    const r1 = App.util.round1;
+    let html = '';
+    rows.forEach((row) => {
+      const sel = o.allSelected || (o.selectedSet && row.i != null && o.selectedSet.has(row.i));
+      let cls = 'review-row';
+      if (o.dimUnselected) cls += sel ? ' selected' : ' dim'; // only in selection mode
+      else if (sel) cls += ' selected';
+      if (o.reveal && o.trueValue != null) {
+        const rv = r1(row.v), rtv = r1(o.trueValue);
+        if (rv > rtv) cls += ' rv-above'; else if (rv < rtv) cls += ' rv-below';
+      }
+      const idAttr = (o.onClick && row.i != null) ? ` data-i="${row.i}"` : '';
+      html += `<div class="${cls}"${idAttr}><span class="rv-num">${fmt(row.v)}</span>${App.stars.html(row.v)}</div>`;
+    });
+    container.innerHTML = html;
+    container.classList.toggle('clickable', !!o.onClick);
+    container.onclick = o.onClick
+      ? (e) => { const el = e.target.closest('.review-row'); if (el && el.dataset.i != null) o.onClick(+el.dataset.i); }
+      : null;
   }
 
   // always two lines (trade or not) so the box height never changes → no Y-jump
@@ -258,31 +289,6 @@ App.sandbox = (function () {
       fillOutcome(s, s.payoff);
       if (s.showCalc) $('calc-box').innerHTML = calcLines(s);
     }
-  }
-
-  function renderCharts(s, seller, payoff, slide, discValues, hasDisc) {
-    if (seller && slide >= 3 && !payoff) {
-      const key = s.reviews.join(',') + '|' + s.disclosed.slice().sort().join(',') + '|' + s.revealColors;
-      if (key !== allKey || !allChart) {
-        if (allChart) allChart.destroy();
-        const onIndex = (i) => {
-          const st = App.state.get();
-          if (st.role === 'seller' && st.slide >= 4 && st.phase === 'decision') App.state.toggleDisclose(i);
-        };
-        allChart = App.charts.make($('allChart'), s.reviews, App.charts.allReviewColors(s), onIndex);
-        allKey = key;
-      }
-    } else if (allChart) { allChart.destroy(); allChart = null; allKey = ''; }
-
-    if (hasDisc) {
-      const key = discValues.join(',') + '|' + s.revealColors + '|' + s.trueValue;
-      if (key !== discKey || !discChart) {
-        if (discChart) discChart.destroy();
-        const colors = discValues.map((v) => App.charts.barColor(v, s.trueValue, true, s.revealColors));
-        discChart = App.charts.make($('discChart'), discValues, colors, null);
-        discKey = key;
-      }
-    } else if (discChart) { discChart.destroy(); discChart = null; discKey = ''; }
   }
 
   // ---- payoff ----
