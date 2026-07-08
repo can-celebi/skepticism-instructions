@@ -50,7 +50,6 @@ App.scenes = (function () {
       host.style.transition = ''; host.style.height = newItem.offsetHeight + 'px';
     }, 320);
   }
-  function swipeReset(host) { if (host) { host.classList.remove('lx-swipe-host'); host.style.height = ''; host.style.transition = ''; } }
   function sliderRaw(id, val, color) { return `<div class="lx-slider-wrap"><input type="range" id="${id}" class="lx-range ${color}" min="0" max="6" step="0.1" value="${val}"><div class="lx-ticks">${TICKS}</div></div>`; }
   const markUsed = (id) => { const e = q(id); if (e) e.classList.add('used'); };
   const TYPE_SLOW = 60;   // accent typing (score/advice/calc/guide): same as the main-text typewriter
@@ -167,11 +166,15 @@ App.scenes = (function () {
     });
   }
 
-  // -------------------------------------------------- Slide 1: product (upward swipe)
+  // -------------------------------------------------- Slide 1: product (upward swipe; the "True value" label holds still)
   const product = {
     enter(api) { api.setControls({}); api.carousel(() => this.rotate(api), 3000); },
-    rotate(api) { const S = api.S; draw(S, false); this._t = swipeUp(api.stage, `<div class="lx-scene-center">${lx.product(S.tv, { product: S.product, label: 'True value' })}</div>`, api); },
-    leave() { clearTimeout(this._t); swipeReset(q('lx-stage')); },
+    rotate(api) {
+      const S = api.S; draw(S, false);
+      if (!q('lx-p1-host')) api.stage.innerHTML = `<div class="lx-scene-center"><div id="lx-p1-host"></div><div class="lx-val-label">True value</div></div>`;
+      this._t = swipeUp(q('lx-p1-host'), `<div class="lx-imgcard"><img class="lx-shoe" src="${S.product}" alt="product"><div class="lx-starsrow">${App.stars.html(S.tv)}</div><div class="lx-val">${lx.f1(S.tv)}</div></div>`, api);
+    },
+    leave() { clearTimeout(this._t); },
   };
 
   // -------------------------------------------------- Slide 2: two-panel (static labels, swiping image + reviews)
