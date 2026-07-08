@@ -110,7 +110,10 @@ App.stage = (function () {
     $('lx-info-body').innerHTML = html;
     $('lx-info-panel').hidden = false;
     if (info.dist) buildDist();
-    setTimeout(() => document.addEventListener('click', outsideInfo, true), 0);
+    // close on any click/tap outside the panel (also fires the scene's onInfoClosed → reveal).
+    // attached synchronously: the opening click's capture phase has already passed, so it won't self-close.
+    document.removeEventListener('click', outsideInfo, true);
+    document.addEventListener('click', outsideInfo, true);
   }
   function buildDist() {
     if (!window.Chart) return;
