@@ -84,6 +84,7 @@ App.scenes = (function () {
     S.tv = setup.tv; S.reviews = setup.reviews; S.disclosed = new Set(setup.disclosed); S.bid = 3.0;
     const shownVals = setup.disclosed.map((i) => S.reviews[i]).sort((a, b) => a - b);
     api.stage.innerHTML =
+      `<div class="lx-lead" id="lx-lead5"></div>` +                     // lead-in shown first, above the (initially hidden) reviews + UI
       `<div class="lx-slowrise" id="lx-rise5">` +
       `<div class="lx-box-title">Displayed reviews</div><div class="lx-bars sm" id="lx-shownbars"></div>` +
       bidSlot(S.bid) +
@@ -94,19 +95,25 @@ App.scenes = (function () {
     q('lx-gslot').querySelector('.lx-line').classList.add('bid-black');   // slide 5: bid bar black too
     lx.bars(q('lx-shownbars'), shownVals, {});
     const r = q('lx-rise5'), bidBtn = q('lx-bid-btn'), promptText = "Can you guess the product's true value?";
+    const leadText = 'Below is an example of a seller who displayed all the reviews.';
     let prompt = { cancel() {} };
-    if (api.revisit) {                                   // Back → no entrance animation
+    if (api.revisit || setup.replayed) {                 // Back or try-again → lead + guess shown at once, no re-typing
+      q('lx-lead5').textContent = leadText;
       if (r) { r.style.transition = 'none'; r.classList.add('show'); }
       q('lx-guess-prompt').textContent = promptText;
       api.openGate(0);
     } else {
       bidBtn.style.opacity = '0';                        // hold the button back until the question is asked
-      requestAnimationFrame(() => { if (r) r.classList.add('show'); });
       const at = api.S.i;
-      setTimeout(() => {
+      // 1) the lead-in types first; 2) once done, the reviews + UI fade in; 3) then the guess prompt; 4) then the bid button
+      typeText(q('lx-lead5'), leadText, TYPE_SLOW, () => {
         if (api.S.i !== at) return;
-        prompt = typeText(q('lx-guess-prompt'), promptText, TYPE_SLOW, () => { bidBtn.style.transition = 'opacity .5s ease'; bidBtn.style.opacity = '1'; });
-      }, 3500);
+        if (r) r.classList.add('show');
+        setTimeout(() => {
+          if (api.S.i !== at) return;
+          prompt = typeText(q('lx-guess-prompt'), promptText, TYPE_SLOW, () => { bidBtn.style.transition = 'opacity .5s ease'; bidBtn.style.opacity = '1'; });
+        }, 1400);
+      });
     }
     const sl = q('lx-slider'), val = q('lx-bidval');
     sl.addEventListener('input', () => { S.bid = round1(+sl.value); val.textContent = S.bid.toFixed(1); });
@@ -207,19 +214,20 @@ App.scenes = (function () {
         `</div>`;
       this.c = q('lx-bars3');
       this._revealed = false;
+      const guideText = 'Press the die for a new true value, or untick “auto” to go through them yourself.';
       this._reveal = () => {
         if (this._revealed) return; this._revealed = true;
-        api.setControls({ die: true, auto: true, hold: true, aid: true });
+        api.setControls({ die: true, auto: true, hold: true, aid: true, guide: ' ' });
         q('lx-rev3').classList.add('show');
         api.carousel(() => this.step(api), 1750);
+        const g = document.querySelector('#lx-controls .lx-guide');
+        if (g) { g.textContent = guideText; if (!api.revisit) { g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } }   // fade in, no typing
         api.openGate(api.revisit ? 0 : 6000);   // Next unlocks 6s after the graph is revealed
       };
       if (api.revisit) { q('lx-rev3').style.transition = 'none'; this._reveal(); return; }
-      // first visit: hidden until the info box is opened+closed (onInfoClosed) — plus a safety net so Next can never dead-end
-      const at = api.S.i;
-      this.t = setTimeout(() => { if (api.S.i === at) this._reveal(); }, 25000);
+      // first visit: hard-gated — the graph reveals ONLY after the info box is opened + closed (onInfoClosed)
     },
-    leave() { clearTimeout(this.t); },
+    leave() { if (this._guideTyper) this._guideTyper.cancel(); },
     onInfoClosed() { if (this._reveal) this._reveal(); },   // reveal the graph after the info box is opened + closed
     step(api) { draw(api.S, api.S.hold); api.spinDie(); this.paint(api); },
     paint(api) { const S = api.S; setTvHead(S.tv); lx.bars(this.c, S.reviews.slice(), { aid: S.aid, tv: S.tv, animate: true }); setStats('lx-stats3', S.reviews); },
@@ -248,26 +256,23 @@ App.scenes = (function () {
       // cue reappears on hovering the all-reviews graph; in auto it hides again on leave
       this.cAll.addEventListener('mouseenter', () => { const c = q('lx-cue4'); if (c) { c.hidden = false; c.classList.remove('hide'); } });
       this.cAll.addEventListener('mouseleave', () => { const c = q('lx-cue4'), auto = q('lx-auto') && q('lx-auto').checked; if (c && auto) c.hidden = true; });
-      this.newScenario(api);   // static (auto off) until the user ticks auto or presses the die
-      this._gateArmed = false;
-      const guideText = 'Tick “auto” to play it automatically, or press the die for a new true value.';
-      const showControls = () => api.setControls({ die: true, auto: true, autoChecked: false, hold: true, aid: true, guide: ' ' });
-      const typeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) this._guideTyper = typeText(g, guideText, TYPE_SLOW); };
+      this.newScenario(api);   // paint an initial sample (hidden) — auto-cycle starts when the graph reveals
+      api.openGate(api.revisit ? 0 : 12000);   // Next appears 12s after entering (no interaction gate)
+      const guideText = 'Press the die for a new true value, or untick “auto” to go through them yourself.';
+      const showControls = () => api.setControls({ die: true, auto: true, autoChecked: true, hold: true, aid: true, guide: ' ' });
+      const fadeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) { g.textContent = guideText; g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } };   // fade in, no typing
       const at = api.S.i;
       if (api.revisit) { q('lx-rise4').style.transition = 'none'; showControls(); const g = document.querySelector('#lx-controls .lx-guide'); if (g) g.textContent = guideText; q('lx-rise4').classList.add('show'); return; }
-      // first visit: reveal graph + controls, then the guide types in 5s later
+      // first visit: reveal graph + controls, auto-play the disclosure, then the guide types in 5s later
       this.t = setTimeout(() => {
         if (api.S.i !== at) return;
-        showControls(); q('lx-rise4').classList.add('show');
-        this.t2 = setTimeout(() => { if (api.S.i === at) typeGuide(); }, 5000);
+        showControls(); q('lx-rise4').classList.add('show'); this.autoCycle(api); fadeGuide();   // guide shows with the controls, no delay
       }, 1200);
     },
     leave() { clearD(); clearTimeout(this.t); clearTimeout(this.t2); if (this._guideTyper) this._guideTyper.cancel(); },
-    // Next unlocks 5s after the first interaction (auto ticked, or first manual pick)
-    armGate(api) { if (this._gateArmed) return; this._gateArmed = true; api.openGate(5000); },
-    // die → a fresh true value + distribution, manual (also counts as an interaction that arms the gate)
-    step(api) { clearD(); this.armGate(api); this.newScenario(api); },
-    setAuto(on, api) { if (on) { this.armGate(api); this.autoCycle(api); } else { clearD(); this.paint(api); } },
+    // die → a fresh true value + distribution, manual
+    step(api) { clearD(); this.newScenario(api); },
+    setAuto(on, api) { if (on) this.autoCycle(api); else { clearD(); this.paint(api); } },
     onAid(on, api) { const l = q('lx-aidleg'); if (l) l.hidden = !on; this.paint(api); },
     newScenario(api) { const S = api.S; clearD(); draw(S, S.hold); S.disclosed = new Set(); const c = q('lx-cue4'); if (c) c.classList.remove('hide'); this.paint(api); },
     autoCycle(api) {
@@ -284,7 +289,7 @@ App.scenes = (function () {
       const n = S.disclosed.size;
       setBold('lx-w-none', n === 0); setBold('lx-w-some', n > 0 && n < S.reviews.length); setBold('lx-w-all', n === S.reviews.length && n > 0);
       lx.bars(this.cAll, S.reviews.slice(), { selected: S.disclosed, dimUnselected: true, clickable: manual, aid: S.aid, tv: S.tv, animate: true,
-        onClick: (i) => { if (!manual) return; this.armGate(api); const c = q('lx-cue4'); if (c) c.classList.add('hide'); if (S.disclosed.has(i)) S.disclosed.delete(i); else S.disclosed.add(i); this.paint(api); } });
+        onClick: (i) => { if (!manual) return; const c = q('lx-cue4'); if (c) c.classList.add('hide'); if (S.disclosed.has(i)) S.disclosed.delete(i); else S.disclosed.add(i); this.paint(api); } });
       const shown = [...S.disclosed].map((i) => S.reviews[i]).sort((a, b) => a - b);
       if (shown.length) { this.cShown.classList.remove('is-empty'); lx.bars(this.cShown, shown, { aid: S.aid, tv: S.tv, animate: true }); }
       else { lx.killChart(this.cShown); this.cShown.classList.add('is-empty'); this.cShown.innerHTML = '<div class="lx-empty-note">The seller displays no reviews</div>'; }
@@ -294,8 +299,8 @@ App.scenes = (function () {
 
   // -------------------------------------------------- Slide 5: bid
   const bid = {
-    enter(api) { this.fresh(api); },
-    fresh(api) { const S = api.S; draw(S, false); const disc = [...rng.autoDiscloseIndices(S.reviews, S.tv)]; buildBid(api, { tv: S.tv, reviews: S.reviews, disclosed: disc, replay: (a) => this.fresh(a) }); },
+    enter(api) { this.fresh(api, false); },
+    fresh(api, replayed) { const S = api.S; draw(S, false); const disc = S.reviews.map((_, i) => i); buildBid(api, { tv: S.tv, reviews: S.reviews, disclosed: disc, replayed: !!replayed, replay: (a) => this.fresh(a, true) }); },   // always show all 10 reviews (no cherry-pick bias)
   };
 
   // -------------------------------------------------- Slides 6 & 7: price / earnings (staged reveal)
@@ -427,56 +432,115 @@ App.scenes = (function () {
     };
   }
 
+  // -------------------------------------------------- Slide 6: price/trade text + interactive price info box; part C = earnings text
+  const priceInfo = {
+    enter(api) {
+      api.stage.innerHTML = '';                          // no stage graphic on this slide
+      this._api = api; this._shown = false;
+      if (api.revisit) {
+        document.querySelectorAll('#lx-main .lx-inline-hint').forEach((h) => { h.style.display = 'none'; });
+        this.revealC(true);
+      }
+    },
+    onInfoClosed() { this.revealC(false); },              // part C appears after the price info box is opened + closed
+    revealC(instant) {
+      if (this._shown) return; this._shown = true;
+      const api = this._api;
+      const para = document.createElement('div'); para.className = 'lx-para lx-partc';
+      para.innerHTML =
+        `<span class="lx-hr"></span>` +
+        `<p class="lx-tradehead"><span class="lx-th-lab">WHEN A TRADE TAKES PLACE</span><span class="lx-th-cond"><span class="lx-red">bid</span> ≥ <span class="lx-blue">price</span></span></p>` +
+        `<div class="lx-earn" id="lx-earn"></div>` +
+        `<div class="lx-nt" id="lx-nt"></div>` +
+        `<button id="lx-c-ok" class="lx-ok" hidden>OK</button>`;
+      document.getElementById('lx-main').appendChild(para);
+      const earnEl = para.querySelector('#lx-earn'), ntEl = para.querySelector('#lx-nt'), okBtn = para.querySelector('#lx-c-ok');
+      const earnLines = ['You earn the true value minus the <span class="lx-blue">price</span>.', 'The seller earns your <span class="lx-red">bid</span> minus the production cost.'];
+      const noTrade = ['If there is no trade, neither you nor the seller earns anything.'];
+      if (instant) {   // revisit → show all, gate open
+        earnEl.innerHTML = earnLines.map((t) => `<p class="stmt">${t}</p>`).join('');
+        ntEl.innerHTML = noTrade.map((t) => `<p class="stmt">${t}</p>`).join('');
+        api.openGate(0); return;
+      }
+      // first visit → type the earnings, then OK reveals + types the no-trade line
+      this._t1 = App.typewriter.run(earnEl, earnLines, () => { okBtn.hidden = false; okBtn.classList.add('show'); }, { speed: TYPE_SLOW });
+      okBtn.addEventListener('click', () => {
+        okBtn.style.display = 'none';
+        this._t2 = App.typewriter.run(ntEl, noTrade, () => api.openGate(0), { speed: TYPE_SLOW });
+      });
+    },
+    leave() { if (this._t1) this._t1.cancel(); if (this._t2) this._t2.cancel(); },
+  };
+
   // -------------------------------------------------- bidding examples (step-by-step)
   const exBid = {
     enter(api) {
-      const c = slide(api).exCase, trade = c.bid >= c.price;
-      const buyer = trade ? round1(c.tv - c.price) : 0, seller = trade ? round1(c.bid - (c.tv - 0.3)) : 0;
-      const recap = c.finalLines[0];
-      const advice = c.finalLines.slice(1).concat(c.strategy ? [c.strategy] : []);
-      const calcStmts = trade
-        ? [`You: value − price = ${c.tv.toFixed(1)} − ${c.price.toFixed(1)} = <b>${buyer.toFixed(1)}</b>`,
-           `Seller: bid − (value − 0.3) = ${c.bid.toFixed(1)} − ${round1(c.tv - 0.3).toFixed(1)} = <b>${seller.toFixed(1)}</b>`,
+      const c = slide(api).exCase, id = slide(api).id, tv = c.tv, price = c.price;
+      const fmtBid = (b) => (b % 1 === 0 ? String(b) : b.toFixed(1));
+      // outcome-dependent recap. trade → paid; no trade splits on whether skipping was wise:
+      //   price > value → you rightly avoided overpaying;  price ≤ value → you missed a good deal
+      const recapFor = (bid) => {
+        if (bid >= price) return `You paid ${price} for a product worth${price > tv ? ' only' : ''} ${tv}.`;
+        return price > tv
+          ? `You avoided overpaying by not buying a product worth ${tv} for ${price}.`
+          : `You missed a deal to buy a product worth ${tv} for ${price}.`;
+      };
+      const payoffs = (bid) => { const trade = bid >= price; return { trade, buyer: trade ? round1(tv - price) : 0, seller: trade ? round1(bid - (tv - 0.3)) : 0 }; };
+      const pfHtml = (bid, cls) => { const p = payoffs(bid); return `<div class="lx-pf-cell ${cls}" id="lx-expfa">Your payoff <b class="${p.buyer < 0 ? 'lx-neg' : ''}">${p.buyer.toFixed(1)}</b></div><div class="lx-pf-cell ${cls}" id="lx-expfb">Seller's payoff <b>${p.seller.toFixed(1)}</b></div>`; };
+      const calcStmts = (bid) => { const p = payoffs(bid); return p.trade
+        ? [`You: value − price = ${tv.toFixed(1)} − ${price.toFixed(1)} = <b>${p.buyer.toFixed(1)}</b>`,
+           `Seller: bid − (value − 0.3) = ${bid.toFixed(1)} − ${round1(tv - 0.3).toFixed(1)} = <b>${p.seller.toFixed(1)}</b>`,
            `<span class="lx-cost-note">production cost = value − 0.3</span>`]
-        : ['No trade, so both earn <b>0</b>.'];
-      const pfHtml = (cls) => `<div class="lx-pf-cell ${cls}" id="lx-expfa">Your payoff <b class="${buyer < 0 ? 'lx-neg' : ''}">${buyer.toFixed(1)}</b></div><div class="lx-pf-cell ${cls}" id="lx-expfb">Seller's payoff <b>${seller.toFixed(1)}</b></div>`;
+        : ['No trade, so both earn <b>0</b>.']; };
+      const advice = c.finalLines.slice(1).concat(c.strategy ? [c.strategy] : []);
       api.stage.innerHTML =
         `<div class="lx-graphic-slot">${lx.line()}</div>` +
         `<div class="lx-pf" id="lx-expf"></div>` +
         `<div class="lx-calc-box plain" id="lx-excalcbox"></div>` +
-        `<div class="lx-slogan"><div class="lx-recap" id="lx-recap"></div><div class="lx-advice" id="lx-advice"></div></div>`;
+        `<div class="lx-slogan"><div class="lx-recap" id="lx-recap"></div><div class="lx-advice" id="lx-advice"></div></div>` +
+        `<div class="lx-exbid lx-stg" id="lx-exbid"><div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-exslider" class="lx-range red" min="0" max="6" step="0.1" value="${c.bid}"></div><div class="lx-exbid-hint">use the slider to change the bid</div></div>`;
       const line = api.stage.querySelector('.lx-line');   // examples use full colour coding: value black, bid red, price blue
-      { const adv = q('lx-advice'), id = slide(api).id;   // warnings red; the good case soft/happy pink
+      { const adv = q('lx-advice');   // warnings red; the good case soft/happy pink
         if (adv) { if (id === 'ex-bid-3') adv.classList.add('lx-advice-happy'); else adv.style.color = (id === 'ex-bid-1' || id === 'ex-bid-2') ? '#dc3545' : ''; } }
+
+      // update graph + payoffs + calc + recap + the "Your bid is X" left-text number for the current bid
+      const update = (bid) => {
+        lx.setLine(line, { tv: tv, bid: bid, price: price, band: true });
+        q('lx-expf').innerHTML = pfHtml(bid, '');
+        q('lx-excalcbox').innerHTML = calcStmts(bid).map((s) => `<p class="stmt">${s}</p>`).join('');
+        q('lx-recap').textContent = recapFor(bid);
+        const bn = document.getElementById('lx-exbidnum'); if (bn) bn.textContent = fmtBid(bid);
+      };
+      const slEl = q('lx-exslider'); this._interacted = false;
+      slEl.addEventListener('input', () => { update(round1(+slEl.value)); if (!this._interacted) { this._interacted = true; api.openGate(0); } });   // Next gated on first interaction
+
       this._t = [];
       const at = api.S.i, T = (ms, fn) => this._t.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms));
 
-      if (api.revisit) {   // Back → final state, no animation
-        lx.setLine(line, { tv: c.tv, bid: c.bid, price: c.price, band: true });
-        q('lx-expf').innerHTML = pfHtml('');
-        q('lx-excalcbox').innerHTML = calcStmts.map((s) => `<p class="stmt">${s}</p>`).join('');
-        q('lx-recap').textContent = recap;
+      if (api.revisit) {   // Back → final state + active slider, gate open
+        update(c.bid);
         q('lx-advice').innerHTML = advice.map((l) => `<div>${l}</div>`).join('');
+        q('lx-exbid').classList.add('show');
         api.openGate(0);
         return;
       }
 
-      // slow staged sequence: value → bid → price on the line, then payoff steps in, then typed calc, recap, advice
+      // slow staged sequence: value → bid → price on the line, payoff, calc, recap, advice, then reveal the interactive slider
       lx.setLine(line, { tv: null, bid: null, price: null, band: false });
-      T(600,  () => lx.setLine(line, { tv: c.tv, bid: null, price: null, band: false }));
-      T(1900, () => lx.setLine(line, { tv: c.tv, bid: c.bid, price: null, band: false }));
-      T(3200, () => lx.setLine(line, { tv: c.tv, bid: c.bid, price: c.price, band: true }));
-      T(4400, () => { q('lx-expf').innerHTML = pfHtml('lx-stg'); });
+      T(600,  () => lx.setLine(line, { tv: tv, bid: null, price: null, band: false }));
+      T(1900, () => lx.setLine(line, { tv: tv, bid: c.bid, price: null, band: false }));
+      T(3200, () => lx.setLine(line, { tv: tv, bid: c.bid, price: price, band: true }));
+      T(4400, () => { q('lx-expf').innerHTML = pfHtml(c.bid, 'lx-stg'); });
       T(4600, () => { const e = q('lx-expfa'); if (e) e.classList.add('show'); });
       T(5600, () => { const e = q('lx-expfb'); if (e) e.classList.add('show'); });
       T(6800, () => {
         if (App.typewriter) {
-          this._calc = App.typewriter.run(q('lx-excalcbox'), calcStmts, () => {
-            T(1200, () => { this._recap = typeText(q('lx-recap'), recap, TYPE_SLOW, () => {
-              T(1500, () => { this._advice = App.typewriter.run(q('lx-advice'), advice, () => api.openGate(0), { speed: TYPE_SLOW }); });
+          this._calc = App.typewriter.run(q('lx-excalcbox'), calcStmts(c.bid), () => {
+            T(1200, () => { this._recap = typeText(q('lx-recap'), recapFor(c.bid), TYPE_SLOW, () => {
+              T(1500, () => { this._advice = App.typewriter.run(q('lx-advice'), advice, () => { q('lx-exbid').classList.add('show'); }, { speed: TYPE_SLOW }); });   // Next stays gated until the user drags the slider
             }); });
           }, { speed: TYPE_SLOW });
-        } else { q('lx-excalcbox').innerHTML = calcStmts.map((s) => `<p class="stmt">${s}</p>`).join(''); api.openGate(0); }
+        } else { update(c.bid); q('lx-advice').innerHTML = advice.map((l) => `<div>${l}</div>`).join(''); q('lx-exbid').classList.add('show'); }
       });
     },
     leave() { (this._t || []).forEach(clearTimeout); if (this._calc) this._calc.cancel(); if (this._recap) this._recap.cancel(); if (this._advice) this._advice.cancel(); },
@@ -502,5 +566,6 @@ App.scenes = (function () {
     leave() { if (this._t) this._t.cancel(); },
   };
 
-  return { product, twoPanel, reviews, disclosure, bid, price: tradeScene(false), earnings: tradeScene(true), exBid, finalNote };
+  // price/earnings (tradeScene) are BENCHED — kept for a future complex trade slide; slide 6 now uses priceInfo
+  return { product, twoPanel, reviews, disclosure, bid, priceInfo, price: tradeScene(false), earnings: tradeScene(true), exBid, finalNote };
 })();
