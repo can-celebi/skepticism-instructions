@@ -95,19 +95,19 @@ App.content = {
     },
     // 8–10 — bidding examples (step-by-step; final message revealed last)
     { id: 'ex-bid-1', scene: 'exBid', title: 'overbidding', manualGate: true,
-      exCase: { tv: 2, bid: 4, price: 3, finalLines: ['You paid 3 for a product worth only 2.', 'Bidding above the true value risks overpaying.'] },
+      exCase: { tv: 2, bid: 4, price: 3, gateOnTrueValue: true, finalLines: ['You paid 3 for a product worth only 2.', 'Bidding above the true value risks overpaying.'] },
       steps: [{ text: ["The product's value is 2.", 'Your bid is <span class="lx-red" id="lx-exbidnum">4</span>.', 'The sales price ends up at <span class="lx-blue">3</span>.'] }] },
     { id: 'ex-bid-2', scene: 'exBid', title: 'underbidding', manualGate: true,
-      exCase: { tv: 4, bid: 2, price: 3, finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },
+      exCase: { tv: 4, bid: 2, price: 3, gateOnTrueValue: true, finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },
       steps: [{ text: ["The product's value is 4.", 'Your bid is <span class="lx-red" id="lx-exbidnum">2</span>.', 'The sales price ends up at <span class="lx-blue">3</span>.'] }] },
     { id: 'ex-bid-3', scene: 'exBid', title: 'optimal bid', manualGate: true,
       exCase: { tv: 3, bid: 3, price: 2, finalLines: ['You paid 2 for a product worth 3.', 'Bidding the true value, you never overpay and never miss a deal.'], strategy: 'It is best to bid what you <span class="lx-key">believe</span> the true value is.' },
       steps: [{ text: ["The product's value is 3.", 'Your bid is <span class="lx-red" id="lx-exbidnum">3</span>.', 'The sales price ends up at <span class="lx-blue">2</span>.'] }] },
     // moral / lessons from the three examples — intro first, then each lesson behind its own OK
     {
-      id: 'lessons', title: 'takeaway', okLabel: 'TELL ME',
+      id: 'lessons', title: 'takeaway',
       steps: [
-        { text: ['What these three examples teach us:'] },
+        { text: ['What these three examples teach us:'], ok: 'TELL ME' },
         { text: ['Bidding above the true value risks overpaying.'] },
         { text: ['Bidding below the true value risks missing a good deal.'] },
         { text: ['You never overpay and never miss a deal when you bid the true value.'] },
@@ -118,7 +118,15 @@ App.content = {
     // { id: 'ex-disp-1', scene: 'exDisp', title: 'Full disclosure', exDisp: { n: 10 }, steps: [{ text: ['The seller shows all 10 reviews...'] }] },
     // { id: 'ex-disp-2', scene: 'exDisp', title: 'Some disclosure', exDisp: { n: 5 }, steps: [{ text: ['The seller shows only some reviews...'] }] },
     // { id: 'ex-disp-3', scene: 'exDisp', title: 'Minimal disclosure', exDisp: { n: 2 }, steps: [{ text: ['The seller shows just a couple...'] }] },
-    // 11–12 — informative
+    // 12 — strategy market (interactive payoff history)
+    {
+      id: 'strategy-market', title: 'strategy', scene: 'market', manualGate: true, stepsInMain: true,
+      steps: [
+        { text: ['For you, as the buyer, the best strategy involves trading only half of the time.'] },
+        { text: ['<span class="lx-caps-note">Below, the payoffs of the seller and the buyer are recorded for a given true value, bid, and a price that is randomly determined in each round.</span>'] },
+      ],
+    },
+    // 13–14 — informative
     {
       id: 'payment-overview', title: 'payment',
       steps: [{ text: [
@@ -150,8 +158,8 @@ App.content = {
       title: 'How the price is drawn',
       priceDemo: true,
       lines: [
-        'The price is drawn at random within ±1 star of the true value: as low as 1 star below it, and as high as 1 star above it.',
-        'That range is the <span class="lx-band-chip"></span> blue dashed area around the black true-value bar in the graph above.',
+        'The price is drawn at random within ±1 star of the true value.',
+        'That range is the <span class="lx-band-chip"></span> blue dashed area around the black true-value bar in the graph below.',
       ],
       hint: 'Move the slider to change the true value, or press the die to draw a price yourself.',
     },
@@ -159,8 +167,7 @@ App.content = {
       title: 'Reviews in detail',
       dist: true,
       lines: [
-        'Each review is a noisy signal of the true value.',
-        'Most reviews land close to it.',
+        'Most of the reviews are close to the true value.',
         'Reviews far from the true value are rare.',
         'Formally, each review is drawn from a bell-shaped <b>normal distribution</b> centred on the true value (standard deviation 0.5).',
       ],

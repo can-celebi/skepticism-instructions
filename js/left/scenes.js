@@ -475,7 +475,7 @@ App.scenes = (function () {
   // -------------------------------------------------- bidding examples (step-by-step)
   const exBid = {
     enter(api) {
-      const c = slide(api).exCase, id = slide(api).id, tv = c.tv, price = c.price;
+      const c = slide(api).exCase, id = slide(api).id, tv = c.tv, price = c.price, gateTv = !!c.gateOnTrueValue;
       const fmtBid = (b) => (b % 1 === 0 ? String(b) : b.toFixed(1));
       // outcome-dependent recap. trade → paid; no trade splits on whether skipping was wise:
       //   price > value → you rightly avoided overpaying;  price ≤ value → you missed a good deal
@@ -498,7 +498,7 @@ App.scenes = (function () {
         `<div class="lx-pf" id="lx-expf"></div>` +
         `<div class="lx-calc-box plain" id="lx-excalcbox"></div>` +
         `<div class="lx-slogan"><div class="lx-recap" id="lx-recap"></div><div class="lx-advice" id="lx-advice"></div></div>` +
-        `<div class="lx-exbid lx-stg" id="lx-exbid"><div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-exslider" class="lx-range red" min="0" max="6" step="0.1" value="${c.bid}"></div><div class="lx-exbid-hint">use the slider to change the bid</div></div>`;
+        `<div class="lx-exbid lx-stg" id="lx-exbid"><div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-exslider" class="lx-range red" min="0" max="6" step="0.1" value="${c.bid}"></div><div class="${gateTv ? 'lx-exbid-gate' : 'lx-exbid-hint'}" id="lx-exhint">${gateTv ? 'set your bid to the true value' : 'use the slider to change the bid'}</div></div>`;
       const line = api.stage.querySelector('.lx-line');   // examples use full colour coding: value black, bid red, price blue
       { const adv = q('lx-advice');   // warnings red; the good case soft/happy pink
         if (adv) { if (id === 'ex-bid-3') adv.classList.add('lx-advice-happy'); else adv.style.color = (id === 'ex-bid-1' || id === 'ex-bid-2') ? '#dc3545' : ''; } }
@@ -512,7 +512,13 @@ App.scenes = (function () {
         const bn = document.getElementById('lx-exbidnum'); if (bn) bn.textContent = fmtBid(bid);
       };
       const slEl = q('lx-exslider'); this._interacted = false;
-      slEl.addEventListener('input', () => { update(round1(+slEl.value)); if (!this._interacted) { this._interacted = true; api.openGate(0); } });   // Next gated on first interaction
+      slEl.addEventListener('input', () => {
+        update(round1(+slEl.value));
+        if (this._interacted) return;
+        if (gateTv) {   // Next unlocks only once the bid is set to the true value
+          if (round1(+slEl.value) === tv) { this._interacted = true; api.openGate(0); const h = q('lx-exhint'); if (h) h.classList.add('done'); }
+        } else { this._interacted = true; api.openGate(0); }   // other examples: unlock on first interaction
+      });
 
       this._t = [];
       const at = api.S.i, T = (ms, fn) => this._t.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms));
@@ -546,6 +552,97 @@ App.scenes = (function () {
     leave() { (this._t || []).forEach(clearTimeout); if (this._calc) this._calc.cancel(); if (this._recap) this._recap.cancel(); if (this._advice) this._advice.cancel(); },
   };
 
+  // -------------------------------------------------- Slide 12: strategy market (auto price → payoff-history bar plots)
+  const BROOM = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M19 4l-6 6"/><path d="M13.5 8.5l2 2"/><path d="M11 11l-6 6v2h2l6-6"/><path d="M8 16l2 2"/></svg>';
+  const market = {
+    enter(api) {
+      const S = { tv: 3, bid: 3, price: null, showBuyer: true, showSeller: true, history: [] };
+      this.M = S; this._timer = null;
+      api.stage.innerHTML =
+        `<div class="lx-market" id="lx-market">` +
+          `<div class="lx-slider-wrap lx-sw-tv"><input type="range" id="lx-mk-tv" class="lx-range black" min="1" max="5" step="0.1" value="3"></div>` +
+          `<div class="lx-svalue">True value <b id="lx-mk-tvval">3.0</b></div>` +
+          `<div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-mk-bid" class="lx-range red" min="0" max="6" step="0.1" value="3"></div>` +
+          `<div class="lx-svalue">Your <span class="lx-red">bid</span> <b id="lx-mk-bidval">3.0</b></div>` +
+          lx.line() +
+          `<div class="lx-price-row"><button id="lx-mk-die" class="lx-bluedie2" title="draw a price"></button><span class="lx-price-txt">Price <b class="lx-blue" id="lx-mk-price" style="opacity:0">—</b></span><label class="lx-pd-auto"><input type="checkbox" id="lx-mk-auto" checked> auto</label></div>` +
+          `<div class="lx-market-checks"><label class="lx-mk-check"><input type="checkbox" id="lx-mk-cb-buyer" checked> buyer trade history</label><label class="lx-mk-check"><input type="checkbox" id="lx-mk-cb-seller" checked> seller trade history</label></div>` +
+          `<div class="lx-market-plots" id="lx-mk-plots"></div>` +
+          `<button class="lx-clear-mkt" id="lx-mk-clear">${BROOM}clear market history</button>` +
+        `</div>`;
+      const tvsl = q('lx-mk-tv'), tvval = q('lx-mk-tvval'), bidsl = q('lx-mk-bid'), bidval = q('lx-mk-bidval'), auto = q('lx-mk-auto');
+      this._num = q('lx-mk-price'); this._line = api.stage.querySelector('.lx-line');
+      tvsl.addEventListener('input', () => { S.tv = round1(+tvsl.value); tvval.textContent = S.tv.toFixed(1); this.paintLine(); });   // affects future rounds only
+      bidsl.addEventListener('input', () => { S.bid = round1(+bidsl.value); bidval.textContent = S.bid.toFixed(1); this.paintLine(); });
+      q('lx-mk-die').addEventListener('click', () => { auto.checked = false; this.stopAuto(); this.tick(); });
+      auto.addEventListener('change', () => { if (auto.checked) this.startAuto(); else this.stopAuto(); });
+      q('lx-mk-cb-buyer').addEventListener('change', (e) => { S.showBuyer = e.target.checked; this.paint(); });
+      q('lx-mk-cb-seller').addEventListener('change', (e) => { S.showSeller = e.target.checked; this.paint(); });
+      q('lx-mk-clear').addEventListener('click', () => { S.history = []; this.paint(); });
+      this.paintLine(); this.paint();
+      if (api.revisit) { q('lx-market').classList.add('show'); this.startAuto(); api.openGate(0); }
+    },
+    onStepsDone(api) { const m = q('lx-market'); if (m) m.classList.add('show'); this.startAuto(); api.openGate(12000); },   // reveal + Next after 12s
+    startAuto() { this.stopAuto(); this.tick(); this._timer = setInterval(() => this.tick(), 1000); },
+    stopAuto() { if (this._timer) { clearInterval(this._timer); this._timer = null; } },
+    paintLine() { const l = this._line, S = this.M; if (l) lx.setLine(l, { tv: S.tv, bid: S.bid, price: S.price, band: true, tvTag: false, bidTag: false, priceTag: false }); },
+    tick() {
+      const S = this.M; S.price = rng.salesPrice(S.tv);
+      const trade = S.bid >= S.price;
+      S.history.push({ trade, buyer: trade ? round1(S.tv - S.price) : 0, seller: trade ? round1(S.bid - (S.tv - 0.3)) : 0 });
+      if (S.history.length > 30) S.history.shift();   // longer buffer feeds the average-over-time plot; bars show only the last window
+      const el = this._num; if (el) { const from = parseFloat(el.textContent) || S.tv; el.style.opacity = '1'; el.classList.remove('lx-numpop'); void el.offsetWidth; el.classList.add('lx-numpop'); animateNum(el, from, S.price, 500); }
+      const d = q('lx-mk-die'); if (d) { d.classList.remove('spin2'); void d.offsetWidth; d.classList.add('spin2'); }
+      this.paintLine();
+      const pm = this._line && this._line.querySelector('.lx-mark.lx-price'); if (pm) { pm.classList.remove('lx-price-appear'); void pm.offsetWidth; pm.classList.add('lx-price-appear'); }
+      this.paint();
+    },
+    paint() {
+      const S = this.M, plots = q('lx-mk-plots'); if (!plots) return;
+      const both = S.showBuyer && S.showSeller, barWindow = both ? 10 : 20, rows = S.history.slice(-barWindow);
+      const cols = [];
+      if (S.showBuyer) cols.push(this.columnHtml('buyer', rows, barWindow));
+      if (S.showSeller) cols.push(this.columnHtml('seller', rows, barWindow));
+      plots.innerHTML = cols.length ? cols.join(both ? '<div class="lx-mk-divider"></div>' : '') : '<div class="lx-mk-empty">tick a box to show a market</div>';
+    },
+    columnHtml(side, rows, N) {
+      const cap = side === 'buyer' ? 'Buyer' : 'Seller';
+      const axisMax = side === 'buyer' ? 1 : Math.max(0.5, ...rows.map((r) => Math.abs(r.seller)));   // buyer fixed ±1, seller auto-scales
+      const series = this.avgSeries(side, N), cur = series.length ? series[series.length - 1] : null;   // average over the shown window
+      const barTitle = `<div class="lx-mk-bar-title">${cap}'s payoffs (last ${N} rounds)</div>`;
+      const avgTitle = `<div class="lx-mk-avg-title">${cap}'s average payoff (last ${N}) <b>${cur == null ? '—' : cur.toFixed(1)}</b></div>`;
+      return `<div class="lx-plot-wrap">${barTitle}<div class="lx-plot">${this.barsHtml(rows, side, axisMax)}</div>${avgTitle}${this.avgPlotHtml(series, side)}</div>`;
+    },
+    barsHtml(rows, side, axisMax) {
+      let cols = '';
+      rows.forEach((r) => {
+        const pay = r[side];
+        if (!r.trade) { cols += `<div class="lx-plot-col"><span class="lx-plot-x">✘</span></div>`; return; }
+        const h = Math.min(1, Math.abs(pay) / axisMax) * 50;   // % of the half-height
+        cols += pay >= 0
+          ? `<div class="lx-plot-col"><div class="lx-bar pos" style="height:${h}%"></div><span class="lx-bar-num" style="bottom:calc(50% + ${h}% + 3px)">${pay.toFixed(1)}</span></div>`
+          : `<div class="lx-plot-col"><div class="lx-bar neg" style="height:${h}%"></div><span class="lx-bar-num" style="top:calc(50% + ${h}% + 3px)">${pay.toFixed(1)}</span></div>`;
+      });
+      return cols;
+    },
+    // trailing-K average payoff at each recorded tick (no-trade counts as 0)
+    avgSeries(side, K) {
+      const h = this.M.history, out = [];
+      for (let i = 0; i < h.length; i++) { const s = Math.max(0, i - K + 1); let sum = 0; for (let j = s; j <= i; j++) sum += h[j][side]; out.push(sum / (i - s + 1)); }
+      return out;
+    },
+    avgPlotHtml(series, side) {
+      const W = 100, H = 40, mid = H / 2, pad = 3;
+      const zero = `<line x1="0" y1="${mid}" x2="${W}" y2="${mid}" class="lx-avgplot-zero" vector-effect="non-scaling-stroke"/>`;
+      if (!series.length) return `<div class="lx-avgplot"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${zero}</svg></div>`;
+      const maxAbs = Math.max(0.4, ...series.map((v) => Math.abs(v))), n = series.length;
+      const pts = series.map((v, i) => { const x = n === 1 ? W / 2 : (i / (n - 1)) * W; const y = mid - (v / maxAbs) * (mid - pad); return `${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ');
+      const stroke = series[series.length - 1] >= 0 ? '#5a9e78' : '#c77e7e';   // green when the current average is positive, red when negative (both buyer and seller)
+      return `<div class="lx-avgplot"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${zero}<polyline points="${pts}" class="lx-avgplot-line" style="stroke:${stroke}" vector-effect="non-scaling-stroke"/></svg></div>`;
+    },
+    leave() { this.stopAuto(); },
+  };
+
   // -------------------------------------------------- final slide: closing directive
   const finalNote = {
     enter(api) {
@@ -567,5 +664,5 @@ App.scenes = (function () {
   };
 
   // price/earnings (tradeScene) are BENCHED — kept for a future complex trade slide; slide 6 now uses priceInfo
-  return { product, twoPanel, reviews, disclosure, bid, priceInfo, price: tradeScene(false), earnings: tradeScene(true), exBid, finalNote };
+  return { product, twoPanel, reviews, disclosure, bid, priceInfo, price: tradeScene(false), earnings: tradeScene(true), exBid, market, finalNote };
 })();

@@ -5,8 +5,9 @@ window.App = window.App || {};
 App.stage = (function () {
   const $ = (id) => document.getElementById(id);
   const SLIDES = App.content.SLIDES;
+  const DEBUG = /\bdebug\b/.test(location.search);   // dev-only slide jumper — activate by adding ?debug to the URL; off for participants (see DEBUG.md)
 
-  let S = null, active = null, carTimer = null, typeHandle = null, warnT = null;
+  let S = null, active = null, carTimer = null, typeHandle = null, warnT = null, debugSel = null;
 
   function showWarn(msg) { const w = $('lx-warn'); w.textContent = msg; w.hidden = false; clearTimeout(warnT); warnT = setTimeout(() => { w.hidden = true; }, 3500); }
   function stopCarousel() { if (carTimer) { clearInterval(carTimer); carTimer = null; } }
@@ -16,13 +17,13 @@ App.stage = (function () {
   // ---- text steps ----
   function typeStep(stepIdx, onDone) {
     const step = SLIDES[S.i].steps[stepIdx];
-    const target = stepIdx === 0 ? $('lx-main') : $('lx-below-text');
+    const target = (stepIdx === 0 || SLIDES[S.i].stepsInMain) ? $('lx-main') : $('lx-below-text');
     const para = document.createElement('div'); para.className = 'lx-para'; target.appendChild(para);
     typeHandle = App.typewriter.run(para, step.text, () => { if (onDone) onDone(); afterStepTyped(stepIdx); });
   }
   function staticStep(stepIdx) {
     const step = SLIDES[S.i].steps[stepIdx];
-    const target = stepIdx === 0 ? $('lx-main') : $('lx-below-text');
+    const target = (stepIdx === 0 || SLIDES[S.i].stepsInMain) ? $('lx-main') : $('lx-below-text');
     const para = document.createElement('div'); para.className = 'lx-para';
     para.innerHTML = step.text.map((t) => `<p class="stmt">${t}</p>`).join('');
     target.appendChild(para);
@@ -34,8 +35,14 @@ App.stage = (function () {
     S.step += 1; hideOk();
     typeStep(S.step, () => { if (S.step < steps.length - 1) showOk(); else hideOk(); });
   }
-  function afterStepTyped(stepIdx) { const sl = SLIDES[S.i]; if (stepIdx >= sl.steps.length - 1 && !sl.manualGate) unlockNextSoon(sl.gateDelayMs || 0); }
-  function showOk() { const b = $('lx-ok'); b.hidden = false; b.classList.add('show'); }
+  function afterStepTyped(stepIdx) {
+    const sl = SLIDES[S.i];
+    if (stepIdx >= sl.steps.length - 1) {
+      if (active && active.onStepsDone) active.onStepsDone(api);   // scene reveals its UI after the last text step (used by manualGate scenes)
+      if (!sl.manualGate) unlockNextSoon(sl.gateDelayMs || 0);
+    }
+  }
+  function showOk() { const b = $('lx-ok'); const sl = SLIDES[S.i], step = sl.steps && sl.steps[S.step]; b.textContent = (step && step.ok) || sl.okLabel || 'OK'; b.hidden = false; b.classList.add('show'); }
   function showOkSoon(delay) { if (!delay) { showOk(); return; } const at = S.i, st = S.step; setTimeout(() => { if (S.i === at && S.step === st) showOk(); }, delay); }
   function hideOk() { $('lx-ok').hidden = true; }
 
@@ -93,10 +100,10 @@ App.stage = (function () {
     $('lx-step-label').textContent = `${S.i + 1} / ${SLIDES.length}`;
     $('lx-title').textContent = sl.title || '';
     $('lx-title').classList.toggle('lx-title-ex', sl.scene === 'exBid');   // ultra-thin gray title that breathes to black
-    $('lx-ok').textContent = sl.okLabel || 'OK';   // per-slide OK label (e.g. "TELL ME")
     refreshNav();
     document.querySelectorAll('#lx-dots .lx-dot').forEach((d) => { const n = +d.dataset.i; d.classList.toggle('done', n < S.i); d.classList.toggle('current', n === S.i); });
     const info = $('lx-info-btn'); info.hidden = !sl.info; info.onclick = sl.info ? () => showInfo(sl.info) : null;
+    if (debugSel) debugSel.value = String(S.i);   // keep the debug jumper in sync
   }
   let distChart = null, pdTimer = null;
   function closeInfo() { const wasOpen = !$('lx-info-panel').hidden; $('lx-info-panel').hidden = true; if (distChart) { distChart.destroy(); distChart = null; } if (pdTimer) { clearInterval(pdTimer); pdTimer = null; } document.removeEventListener('click', outsideInfo, true); if (wasOpen && active && active.onInfoClosed) active.onInfoClosed(); }
@@ -105,16 +112,16 @@ App.stage = (function () {
     const info = App.content.INFO[key]; if (!info) return;
     $('lx-info-title').textContent = info.title;
     let html;
-    if (info.priceDemo) {   // interactive trade demo: graph (tv/bid/price/band) → tv slider → bid slider → blue die + auto → trade result → text
-      html = App.lx.line() +
+    if (info.priceDemo) {   // description first, then the interactive trade demo (graph → tv slider → bid slider → die → trade result)
+      html = info.lines.map((l) => `<p>${l}</p>`).join('') +
+        `<div class="lx-pd-gap"></div>` +
+        App.lx.line() +
         `<div class="lx-slider-wrap lx-sw-tv"><input type="range" id="lx-pd-tvslider" class="lx-range black" min="1" max="5" step="0.1" value="3"></div>` +
         `<div class="lx-dist-lab">True value <b id="lx-pd-tvval">3.0</b></div>` +
         `<div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-pd-bidslider" class="lx-range red" min="0" max="6" step="0.1" value="3"></div>` +
         `<div class="lx-dist-lab">Your <span class="lx-red">bid</span> <b id="lx-pd-bidval">3.0</b></div>` +
         `<div class="lx-price-row"><button id="lx-pd-die" class="lx-bluedie2" title="draw a price"></button><span class="lx-price-txt">Price <b class="lx-blue" id="lx-pd-pricenum" style="opacity:0">—</b></span><label class="lx-pd-auto"><input type="checkbox" id="lx-pd-auto" checked> auto</label></div>` +
-        `<div class="lx-trade-out" id="lx-pd-trade"></div>` +
-        `<div class="lx-pd-gap"></div>` +
-        info.lines.map((l) => `<p>${l}</p>`).join('');
+        `<div class="lx-trade-out" id="lx-pd-trade"></div>`;
     } else {
       html = info.lines.map((l) => `<p>${l}</p>`).join('');
       if (info.dist) html += `<div class="lx-dist"><canvas id="lx-dist-canvas"></canvas></div>` +
@@ -229,6 +236,24 @@ App.stage = (function () {
     });
   }
 
+  // dev-only: jump straight to slide n, marking prior slides done so Back renders them static
+  function debugJump(n) {
+    n = Math.max(0, Math.min(n, SLIDES.length - 1));
+    S.done = new Set(); for (let k = 0; k < n; k++) S.done.add(k);
+    go(n);
+  }
+  function setupDebug() {
+    document.documentElement.classList.add('lx-debug-on');
+    const bar = document.createElement('div'); bar.id = 'lx-debug';
+    bar.innerHTML = '<span class="lx-debug-tag">DEBUG</span> jump:';
+    const sel = document.createElement('select'); sel.id = 'lx-debug-sel';
+    SLIDES.forEach((s, i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = `${i + 1}. ${s.title || s.id}`; sel.appendChild(o); });
+    sel.addEventListener('change', () => debugJump(+sel.value));
+    bar.appendChild(sel); document.body.appendChild(bar);
+    debugSel = sel; debugSel.value = String(S.i);
+    $('lx-dots').addEventListener('click', (e) => { const d = e.target.closest('.lx-dot'); if (d) debugJump(+d.dataset.i); });   // clickable footer dots
+  }
+
   function mount() {
     S = { i: -1, step: 0, tv: null, reviews: [], disclosed: new Set(), product: null, bid: 3.0, price: null,
           hold: false, aid: false, gateOpen: false, done: new Set() };
@@ -243,7 +268,8 @@ App.stage = (function () {
     $('lx-back').addEventListener('click', () => go(S.i - 1));
     $('lx-info-close').addEventListener('click', closeInfo);
     go(0);
+    if (DEBUG) setupDebug();
   }
 
-  return { mount };
+  return { mount, jump: debugJump };
 })();
