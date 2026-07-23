@@ -86,18 +86,21 @@ App.stage = (function () {
   };
 
   // ---- nav / chrome ----
-  function buildDots() { const w = $('lx-dots'); w.innerHTML = ''; SLIDES.forEach((_, i) => { const d = document.createElement('span'); d.className = 'lx-dot'; d.dataset.i = i; w.appendChild(d); }); }
+  function buildDots() { const w = $('lx-dots'); w.innerHTML = ''; SLIDES.forEach((s, i) => { if (s.debugOnly) return; const d = document.createElement('span'); d.className = 'lx-dot'; d.dataset.i = i; w.appendChild(d); }); }
+  // debug-only slides are skipped by Back/Next; they are reachable only via the DEBUG jump menu
+  function nextIdx(i) { for (let j = i + 1; j < SLIDES.length; j++) if (!SLIDES[j].debugOnly) return j; return i; }
+  function prevIdx(i) { for (let j = i - 1; j >= 0; j--) if (!SLIDES[j].debugOnly) return j; return i; }
   function refreshNav() {
-    $('lx-back').disabled = S.i <= 0;
-    const last = S.i >= SLIDES.length - 1;
-    $('lx-next').textContent = last ? 'Done' : 'Next';
+    $('lx-back').disabled = prevIdx(S.i) === S.i;
+    $('lx-next').textContent = nextIdx(S.i) === S.i ? 'Done' : 'Next';
     $('lx-next').disabled = !S.gateOpen;
   }
   function unlockNextSoon(delay) { const at = S.i; setTimeout(() => { if (S.i === at) { S.gateOpen = true; S.done.add(at); refreshNav(); showNextHint(at); } }, delay); }
   function showNextHint(i) { const sl = SLIDES[i], h = $('lx-nexthint'); if (!h || !sl || !sl.nextHint) return; h.textContent = sl.nextHint; h.hidden = false; void h.offsetWidth; h.classList.add('show'); }
   function renderChrome() {
     const sl = SLIDES[S.i];
-    $('lx-step-label').textContent = `${S.i + 1} / ${SLIDES.length}`;
+    { const real = SLIDES.map((s, k) => k).filter((k) => !SLIDES[k].debugOnly);
+      $('lx-step-label').textContent = sl.debugOnly ? 'debug' : `${real.indexOf(S.i) + 1} / ${real.length}`; }
     $('lx-title').textContent = sl.title || '';
     $('lx-title').classList.toggle('lx-title-ex', sl.scene === 'exBid');   // ultra-thin gray title that breathes to black
     refreshNav();
@@ -115,13 +118,13 @@ App.stage = (function () {
     if (info.priceDemo) {   // description first, then the interactive trade demo (graph → tv slider → bid slider → die → trade result)
       html = info.lines.map((l) => `<p>${l}</p>`).join('') +
         `<div class="lx-pd-gap"></div>` +
+        `<div class="lx-trade-out" id="lx-pd-trade"></div>` +   // trade result above the graph so it stays visible in the scrollable panel
         App.lx.line() +
         `<div class="lx-slider-wrap lx-sw-tv"><input type="range" id="lx-pd-tvslider" class="lx-range black" min="1" max="5" step="0.1" value="3"></div>` +
         `<div class="lx-dist-lab">True value <b id="lx-pd-tvval">3.0</b></div>` +
-        `<div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-pd-bidslider" class="lx-range red" min="0" max="6" step="0.1" value="3"></div>` +
-        `<div class="lx-dist-lab">Your <span class="lx-red">bid</span> <b id="lx-pd-bidval">3.0</b></div>` +
-        `<div class="lx-price-row"><button id="lx-pd-die" class="lx-bluedie2" title="draw a price"></button><span class="lx-price-txt">Price <b class="lx-blue" id="lx-pd-pricenum" style="opacity:0">—</b></span><label class="lx-pd-auto"><input type="checkbox" id="lx-pd-auto" checked> auto</label></div>` +
-        `<div class="lx-trade-out" id="lx-pd-trade"></div>`;
+        `<div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-pd-bidslider" class="lx-range red" min="0" max="6" step="0.1" value="3.5"></div>` +
+        `<div class="lx-dist-lab">Your <span class="lx-red">bid</span> <b id="lx-pd-bidval">3.5</b></div>` +
+        `<div class="lx-price-row"><button id="lx-pd-die" class="lx-bluedie2" title="draw a price"></button><span class="lx-price-txt">Price <b class="lx-blue" id="lx-pd-pricenum" style="opacity:0">—</b></span><label class="lx-pd-auto"><input type="checkbox" id="lx-pd-auto" checked> auto</label></div>`;
     } else {
       html = info.lines.map((l) => `<p>${l}</p>`).join('');
       if (info.dist) html += `<div class="lx-dist"><canvas id="lx-dist-canvas"></canvas></div>` +
@@ -158,7 +161,7 @@ App.stage = (function () {
     const flag = document.createElement('div'); flag.className = 'lx-pd-flag'; flag.hidden = true; root.appendChild(flag);
     const numEl = $('lx-pd-pricenum'), die = $('lx-pd-die'), auto = $('lx-pd-auto'), tradeEl = $('lx-pd-trade');
     const tvsl = $('lx-pd-tvslider'), tvval = $('lx-pd-tvval'), bidsl = $('lx-pd-bidslider'), bidval = $('lx-pd-bidval');
-    const st = { tv: 3.0, bid: 3.0, price: null };
+    const st = { tv: 3.0, bid: 3.5, price: null };
     const r1 = (x) => Math.round(x * 10) / 10, pct = (v) => (Math.max(0, Math.min(6, v)) / 6) * 100;
     const paint = () => {
       App.lx.setLine(root, { tv: st.tv, bid: st.bid, price: st.price, band: true, tvTag: false, bidTag: false, priceTag: false });
@@ -247,7 +250,7 @@ App.stage = (function () {
     const bar = document.createElement('div'); bar.id = 'lx-debug';
     bar.innerHTML = '<span class="lx-debug-tag">DEBUG</span> jump:';
     const sel = document.createElement('select'); sel.id = 'lx-debug-sel';
-    SLIDES.forEach((s, i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = `${i + 1}. ${s.title || s.id}`; sel.appendChild(o); });
+    SLIDES.forEach((s, i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = `${s.debugOnly ? '⚙ ' : ''}${i + 1}. ${s.title || s.id}`; sel.appendChild(o); });
     sel.addEventListener('change', () => debugJump(+sel.value));
     bar.appendChild(sel); document.body.appendChild(bar);
     debugSel = sel; debugSel.value = String(S.i);
@@ -264,8 +267,8 @@ App.stage = (function () {
       if (btn) { e.stopPropagation(); btn.classList.add('lx-info-seen'); $('lx-main').querySelectorAll('.lx-inline-hint').forEach((h) => { h.style.display = 'none'; }); showInfo(btn.dataset.info); return; }   // stop nagging once opened; drop the directive
       if (typeHandle) typeHandle.skip();
     });
-    $('lx-next').addEventListener('click', () => go(S.i + 1));
-    $('lx-back').addEventListener('click', () => go(S.i - 1));
+    $('lx-next').addEventListener('click', () => go(nextIdx(S.i)));
+    $('lx-back').addEventListener('click', () => go(prevIdx(S.i)));
     $('lx-info-close').addEventListener('click', closeInfo);
     go(0);
     if (DEBUG) setupDebug();

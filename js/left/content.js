@@ -12,7 +12,10 @@ App.content = {
       ],
       steps: [
         { text: ['Think of a product you bought recently, where the reviews you saw decided how much you paid.'] },
-        { text: ['This experiment recreates that as a game between a seller and a buyer.'] },
+        { text: [
+          'This experiment recreates a similar scenario as a game between a seller and a buyer.',
+          "<span class=\"lx-gap\"></span>Only here, the buyer's aim is to judge the product's true value.",
+        ] },
         { text: ['<span class="lx-buyer-line">You are the <strong>buyer</strong>.</span>'] },
       ],
     },
@@ -21,7 +24,8 @@ App.content = {
       id: 'two-panel', scene: 'twoPanel', title: 'overview', okDelayMs: 4000,
       steps: [
         { text: [
-          "In this game, as a buyer, you don't know the product's true value.",
+          'In this game, the seller is randomly assigned a product whose true value lies between 1 and 5.',
+          "<span class=\"lx-gap\"></span>As a buyer, you don't know the product's true value.",
           '<span class="lx-gap"></span>All you can see are the reviews the seller chooses to show you.',
         ] },
         // archived: "Seller's task: …" / "Your task: …" (bold labels) — replaced with two plain sentences
@@ -68,8 +72,10 @@ App.content = {
       id: 'price', scene: 'priceInfo', title: 'trade', manualGate: true,
       steps: [
         { text: [
-          'After you make your <span class="lx-red">bid</span>, a <span class="lx-blue">sales price</span> is picked around the product\'s true value.',
-          'A trade happens only if your <span class="lx-red">bid</span> is bigger than or equal to the <span class="lx-blue">price</span>. <button class="lx-inline-info" data-info="priceDemo" aria-label="more info">i</button> <span class="lx-inline-hint">please click the info button</span>',
+          "As a buyer, after you <span class=\"lx-red\">bid</span>, a hidden <span class=\"lx-blue\">sales price</span> is picked around the product's true value.",
+          '<span class="lx-gap"></span>Your <span class="lx-red">bid</span> is your price limit:',
+          'if the <span class="lx-blue">price</span> is at or below your <span class="lx-red">bid</span>, you buy the product automatically.',
+          'If it is above, you don\'t. <button class="lx-inline-info" data-info="priceDemo" aria-label="more info">i</button> <span class="lx-inline-hint">please click the info button</span>',
         ] },
       ],
     },
@@ -95,7 +101,7 @@ App.content = {
     },
     // 8–10 — bidding examples (step-by-step; final message revealed last)
     { id: 'ex-bid-1', scene: 'exBid', title: 'overbidding', manualGate: true,
-      exCase: { tv: 2, bid: 4, price: 3, gateOnTrueValue: true, finalLines: ['You paid 3 for a product worth only 2.', 'Bidding above the true value risks overpaying.'] },
+      exCase: { tv: 2, bid: 4, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value sometimes means no trade, and rightly so, since trading here would have left you as the buyer worse off.', finalLines: ['You paid 3 for a product worth only 2.', 'Bidding above the true value risks overpaying.'] },
       steps: [{ text: ["The product's value is 2.", 'Your bid is <span class="lx-red" id="lx-exbidnum">4</span>.', 'The sales price ends up at <span class="lx-blue">3</span>.'] }] },
     { id: 'ex-bid-2', scene: 'exBid', title: 'underbidding', manualGate: true,
       exCase: { tv: 4, bid: 2, price: 3, gateOnTrueValue: true, finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },
@@ -103,15 +109,16 @@ App.content = {
     { id: 'ex-bid-3', scene: 'exBid', title: 'optimal bid', manualGate: true,
       exCase: { tv: 3, bid: 3, price: 2, finalLines: ['You paid 2 for a product worth 3.', 'Bidding the true value, you never overpay and never miss a deal.'], strategy: 'It is best to bid what you <span class="lx-key">believe</span> the true value is.' },
       steps: [{ text: ["The product's value is 3.", 'Your bid is <span class="lx-red" id="lx-exbidnum">3</span>.', 'The sales price ends up at <span class="lx-blue">2</span>.'] }] },
-    // moral / lessons from the three examples — intro first, then each lesson behind its own OK
+    // moral / lessons from the three examples — each statement behind its own OK
     {
       id: 'lessons', title: 'takeaway',
       steps: [
-        { text: ['What these three examples teach us:'], ok: 'TELL ME' },
-        { text: ['Bidding above the true value risks overpaying.'] },
-        { text: ['Bidding below the true value risks missing a good deal.'] },
-        { text: ['You never overpay and never miss a deal when you bid the true value.'] },
-        { text: ['It is best to bid what you, as the buyer, <span class="lx-key">believe</span> the true value is.'] },
+        { text: ['The examples show one simple rule: bid what you believe the product is truly worth.'] },
+        { text: ['Bid above it and you risk overpaying; bid below it and you risk missing a good deal.'] },
+        { text: ["But there's a catch. You don't see the true value."] },
+        { text: ['You have to estimate it from the reviews you are shown.'] },
+        { text: ['And those reviews are chosen by the seller who earns more when you bid higher.'] },
+        { text: ["So the real challenge isn't the bidding rule. It's judging the true value from evidence someone else selected."] },
       ],
     },
     // (disclosure example slides commented out for now — restore when needed)
@@ -122,8 +129,7 @@ App.content = {
     {
       id: 'strategy-market', title: 'strategy', scene: 'market', manualGate: true, stepsInMain: true,
       steps: [
-        { text: ['For you, as the buyer, the best strategy involves trading only half of the time.'] },
-        { text: ['<span class="lx-caps-note">Below, the payoffs of the seller and the buyer are recorded for a given true value, bid, and a price that is randomly determined in each round.</span>'] },
+        { text: ["<span class=\"lx-mk-lead\">Below, each round's payoff for the buyer and the seller is recorded and shown in the graph, along with the average payoff across rounds and the average rate of trade across rounds. Each round's outcome depends on the true value, the bid, and a price that is randomly drawn.</span>"] },
       ],
     },
     // 13–14 — informative
@@ -144,6 +150,20 @@ App.content = {
       ] }],
     },
     // (practice rounds removed for now)
+    // ---- debug-only (never in the normal Back/Next order; reachable via the DEBUG jump menu) ----
+    // 6 old — the previous slide-6 phrasing, kept for comparison
+    {
+      id: 'price-old', scene: 'priceInfo', title: 'trade (6 old)', manualGate: true, debugOnly: true,
+      steps: [{ text: [
+        'After you make your <span class="lx-red">bid</span>, a <span class="lx-blue">sales price</span> is picked around the product\'s true value.',
+        'A trade happens only if your <span class="lx-red">bid</span> is bigger than or equal to the <span class="lx-blue">price</span>. <button class="lx-inline-info" data-info="priceDemo" aria-label="more info">i</button> <span class="lx-inline-hint">please click the info button</span>',
+      ] }],
+      partC: {
+        header: 'WHEN A TRADE TAKES PLACE',
+        earn: ['You earn the true value minus the <span class="lx-blue">price</span>.', 'The seller earns your <span class="lx-red">bid</span> minus the production cost.'],
+        noTrade: ['If there is no trade, neither you nor the seller earns anything.'],
+      },
+    },
   ],
 
   INFO: {
@@ -168,7 +188,6 @@ App.content = {
       dist: true,
       lines: [
         'Most of the reviews are close to the true value.',
-        'Reviews far from the true value are rare.',
         'Formally, each review is drawn from a bell-shaped <b>normal distribution</b> centred on the true value (standard deviation 0.5).',
       ],
       hint: 'Use the slider to change the true value and watch the distribution shift.',
