@@ -273,6 +273,7 @@ App.scenes = (function () {
       this.cAll.addEventListener('mouseleave', () => { const c = q('lx-cue4'), auto = q('lx-auto') && q('lx-auto').checked; if (c && auto) c.hidden = true; });
       this.newScenario(api);   // paint an initial sample (hidden until each block reveals)
       this._auto = true;       // rotation runs from graph 1 on; the auto checkbox (shown later) just toggles this
+      api.S.hold = true;       // hold the true value constant from the start (checkbox is ticked by default) — rotation varies the reviews, not the value
       const guideText = 'Press the die for a new true value, or untick “auto” to go through them yourself.';
       const showControls = () => api.setControls({ die: true, auto: true, autoChecked: true, hold: true, aid: true, guide: ' ' });
       const fadeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) { g.textContent = guideText; g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } };
