@@ -19,7 +19,7 @@ App.stage = (function () {
     const step = SLIDES[S.i].steps[stepIdx];
     const target = (stepIdx === 0 || SLIDES[S.i].stepsInMain) ? $('lx-main') : $('lx-below-text');
     const para = document.createElement('div'); para.className = 'lx-para'; target.appendChild(para);
-    typeHandle = App.typewriter.run(para, step.text, () => { if (onDone) onDone(); afterStepTyped(stepIdx); });
+    typeHandle = App.typewriter.run(para, step.text, () => { if (onDone) onDone(); afterStepTyped(stepIdx); }, { scope: 'main' });
   }
   function staticStep(stepIdx) {
     const step = SLIDES[S.i].steps[stepIdx];
@@ -224,7 +224,7 @@ App.stage = (function () {
       S.introPending = true;
       const para = document.createElement('div'); para.className = 'lx-para'; $('lx-main').appendChild(para);
       const introLines = Array.isArray(sl.intro) ? sl.intro : [sl.intro];
-      typeHandle = App.typewriter.run(para, introLines, () => showOk());
+      typeHandle = App.typewriter.run(para, introLines, () => showOk(), { scope: 'main' });
       return;
     }
     startSlide();

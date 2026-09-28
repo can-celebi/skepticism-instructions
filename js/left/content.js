@@ -72,8 +72,8 @@ App.content = {
       id: 'price', scene: 'priceInfo', title: 'trade', manualGate: true,
       steps: [
         { text: [
-          "As a buyer, after you <span class=\"lx-red\">bid</span>, a hidden <span class=\"lx-blue\">sales price</span> is picked around the product's true value.",
-          '<span class="lx-gap"></span>Your <span class="lx-red">bid</span> is your price limit:',
+          "After you <span class=\"lx-red\">bid</span>, a hidden <span class=\"lx-blue\">sales price</span> is picked around the product's true value.",
+          '<span class="lx-gap"></span>Your <span class="lx-red">bid</span> is the maximum <span class="lx-blue">price</span> you are willing to pay:',
           'if the <span class="lx-blue">price</span> is at or below your <span class="lx-red">bid</span>, you buy the product automatically.',
           'If it is above, you don\'t. <button class="lx-inline-info" data-info="priceDemo" aria-label="more info">i</button> <span class="lx-inline-hint">please click the info button</span>',
         ] },
@@ -125,13 +125,13 @@ App.content = {
     // { id: 'ex-disp-1', scene: 'exDisp', title: 'Full disclosure', exDisp: { n: 10 }, steps: [{ text: ['The seller shows all 10 reviews...'] }] },
     // { id: 'ex-disp-2', scene: 'exDisp', title: 'Some disclosure', exDisp: { n: 5 }, steps: [{ text: ['The seller shows only some reviews...'] }] },
     // { id: 'ex-disp-3', scene: 'exDisp', title: 'Minimal disclosure', exDisp: { n: 2 }, steps: [{ text: ['The seller shows just a couple...'] }] },
-    // 12 — strategy market (interactive payoff history)
-    {
-      id: 'strategy-market', title: 'strategy', scene: 'market', manualGate: true, stepsInMain: true,
-      steps: [
-        { text: ["<span class=\"lx-mk-lead\">Below, each round's payoff for the buyer and the seller is recorded and shown in the graph, along with the average payoff across rounds and the average rate of trade across rounds. Each round's outcome depends on the true value, the bid, and a price that is randomly drawn.</span>"] },
-      ],
-    },
+    // 12 — strategy market (interactive payoff history) — TAKEN OUT OF THE DECK (code kept; the `market` scene in scenes.js is untouched, just unused). Re-enable by uncommenting.
+    // {
+    //   id: 'strategy-market', title: 'strategy', scene: 'market', manualGate: true, stepsInMain: true,
+    //   steps: [
+    //     { text: ["<span class=\"lx-mk-lead\">Below, each round's payoff for the buyer and the seller is recorded and shown in the graph, along with the average payoff across rounds and the average rate of trade across rounds. Each round's outcome depends on the true value, the bid, and a price that is randomly drawn.</span>"] },
+    //   ],
+    // },
     // 13–14 — informative
     {
       id: 'payment-overview', title: 'payment',

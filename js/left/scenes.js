@@ -58,6 +58,13 @@ App.scenes = (function () {
   // tiny plain-text typewriter (faster/cancellable) for accent lines like the guess prompt & score
   function typeText(el, text, speed, onDone) {
     if (!el) return { cancel() {} };
+    if (App.noType && App.noType('accent')) {   // accent lines keep typing under the toggle; instant only under OS reduce-motion
+      el.textContent = text;
+      const d = (App.revealDelay && App.revealDelay()) || 0;
+      if (d <= 0) { if (onDone) onDone(); return { cancel() {} }; }
+      const h = setTimeout(() => { if (onDone) onDone(); }, d);
+      return { cancel() { clearTimeout(h); } };
+    }
     let i = 0, stop = false; el.textContent = '';
     (function step() {
       if (stop) return;
@@ -473,7 +480,7 @@ App.scenes = (function () {
         ntEl.innerHTML = noTrade.map((t) => `<p class="stmt">${t}</p>`).join('');
         api.openGate(0); return;
       }
-      const startEarn = () => { this._t1 = App.typewriter.run(earnEl, earnLines, () => { okBtn.hidden = false; okBtn.classList.add('show'); }, { speed: TYPE_SLOW }); };
+      const startEarn = () => { this._t1 = App.typewriter.run(earnEl, earnLines, () => { okBtn.hidden = false; okBtn.classList.add('show'); }, { speed: TYPE_SLOW, scope: 'main' }); };
       if (header) {   // old version → type the header, reveal the bid ≥ price condition, then the earnings
         const headLab = para.querySelector('.lx-th-lab'), headCond = para.querySelector('.lx-th-cond');
         const labText = headLab.textContent; headLab.textContent = ''; headCond.style.opacity = '0';
@@ -481,7 +488,7 @@ App.scenes = (function () {
       } else { startEarn(); }   // new version → straight to the earnings
       okBtn.addEventListener('click', () => {
         okBtn.style.display = 'none';
-        this._t2 = App.typewriter.run(ntEl, noTrade, () => api.openGate(0), { speed: TYPE_SLOW });
+        this._t2 = App.typewriter.run(ntEl, noTrade, () => api.openGate(0), { speed: TYPE_SLOW, scope: 'main' });
       });
     },
     leave() { if (this._th) this._th.cancel(); if (this._t1) this._t1.cancel(); if (this._t2) this._t2.cancel(); },

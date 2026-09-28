@@ -49,8 +49,15 @@ App.typewriter = (function () {
       if (onDone) onDone();
     };
 
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) { fillAll(); finish(); return { skip() {}, cancel() {} }; }
+    const scope = (opts && opts.scope) || 'accent';
+    if (App.noType && App.noType(scope)) {     // typing off for this scope: show at once (fade in), short settle beat, then onDone
+      fillAll();
+      if (!(App.reduceMotion && App.reduceMotion())) el.classList.add('lx-instant-in');   // fade-in, but never under OS reduce-motion
+      const d = (App.revealDelay && App.revealDelay()) || 0;
+      if (d <= 0) { finish(); return { skip() {}, cancel() {} }; }
+      const h = setTimeout(finish, d);
+      return { skip() { clearTimeout(h); finish(); }, cancel() { clearTimeout(h); finished = true; } };
+    }
 
     // flatten every paragraph into one ordered op list
     const ops = [];

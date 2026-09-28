@@ -112,3 +112,29 @@ App.util = {
   rand: (lo, hi) => lo + Math.random() * (hi - lo),
   mean: (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null),
 };
+
+// ---- typing-animation toggle ----
+// When OFF, both typewriters reveal all text at once and still fire their onDone,
+// so every gate / reveal / flow step is preserved (only the char-by-char delay is
+// skipped; the staged setTimeout reveals are unaffected). Turn OFF via any of:
+//   - set App.config.typeAnimation = false below (ships the deck with typing off)
+//   - add ?notype (or ?instant) to the URL   e.g. .../skepticism-instructions/?notype
+//   - the OS "reduce motion" accessibility setting
+App.config.typeAnimation = false;  // DEFAULT: main instructional text is not typed (fades in); accent lines still type. Set true to type the main text again.
+App.config.instantRevealMs = 600;  // with typing OFF, wait this long before firing onDone (keeps the OK/gate reveal smooth instead of instant)
+App.reduceMotion = function () {
+  try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) { return false; }
+};
+// scope: 'main' = the big slide-body instructional text; 'accent' = the small contextual lines
+// (lead, guess prompt, recap, market note...). The ?notype/flag toggle skips ONLY the main text;
+// accent lines keep typing. OS reduce-motion makes everything instant (accessibility).
+App.noType = function (scope) {
+  if (App.reduceMotion()) return true;
+  var off = false;
+  try { off = /\b(notype|instant)\b/.test(location.search); } catch (e) {}
+  off = off || App.config.typeAnimation === false;
+  return off && scope !== 'accent';
+};
+// delay before onDone when text is shown instantly. 0 under OS reduce-motion (accessibility wants
+// no motion/waiting); otherwise a short settle beat so buttons/gates don't pop in abruptly.
+App.revealDelay = function () { return App.reduceMotion() ? 0 : (App.config.instantRevealMs || 0); };
