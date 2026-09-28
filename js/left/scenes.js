@@ -123,13 +123,12 @@ App.scenes = (function () {
       const fadeInto = (el, text) => { if (!el) return; el.textContent = text; el.style.opacity = '1'; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
       const fadeShow = (el) => { if (el) { el.style.display = ''; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); } };
       const showOk5 = () => { if (okBtn5) { okBtn5.hidden = false; okBtn5.classList.remove('show'); void okBtn5.offsetWidth; okBtn5.classList.add('show'); } };
-      // OK-gated: 1) lead + review graphs  →OK→  2) green sub-line  →OK→  3) guess prompt + slider + bid button
-      fadeInto(q('lx-lead5'), leadText);
-      if (r) r.classList.add('show');
-      setTimeout(() => { if (api.S.i === at) showOk5(); }, 700);
+      const T = (ms, fn) => setTimeout(() => { if (api.S.i === at) fn(); }, ms);
+      // OK-gated: (after ~8s reading the text above) 1) lead + review graphs  →OK→  2) green sub-line  →OK→  3) guess prompt + slider + bid button
+      T(8000, () => { fadeInto(q('lx-lead5'), leadText); if (r) r.classList.add('show'); showOk5(); });
       let stage = 1;
       okBtn5.addEventListener('click', () => {
-        if (stage === 1) { stage = 2; const sub = q('lx-lead5sub'); fadeInto(sub, sub ? sub.textContent : ''); showOk5(); }
+        if (stage === 1) { stage = 2; const sub = q('lx-lead5sub'); fadeInto(sub, sub ? sub.textContent : ''); okBtn5.classList.add('lx-ok-green'); showOk5(); }   // 2nd OK is green (it follows the green note)
         else if (stage === 2) {
           stage = 3; okBtn5.hidden = true;
           fadeShow(gslotEl); fadeShow(bidSlotEl); fadeShow(btnslotEl);
@@ -505,30 +504,32 @@ App.scenes = (function () {
       const header = C.header || null;
       const earnLines = C.earn || ['When you buy, you earn the true value minus the <span class="lx-blue">price</span>.', 'The seller earns your <span class="lx-red">bid</span> minus the production cost.'];
       const noTrade = C.noTrade || ['If there is no trade, neither you nor the seller earns anything.', '<span class="lx-remember">Remember:</span> your <span class="lx-red">bid</span> never changes the <span class="lx-blue">price</span>, only whether you buy the product or not.'];
+      const lines = earnLines.concat(noTrade);   // 4 sentences, each behind its own OK
       const para = document.createElement('div'); para.className = 'lx-para lx-partc';
       para.innerHTML =
         `<span class="lx-hr"></span>` +
         (header ? `<p class="lx-tradehead"><span class="lx-th-lab">${header}</span><span class="lx-th-cond"><span class="lx-red">bid</span> ≥ <span class="lx-blue">price</span></span></p>` : '') +
         `<div class="lx-earn" id="lx-earn"></div>` +
-        `<div class="lx-nt" id="lx-nt"></div>` +
         `<button id="lx-c-ok" class="lx-ok" hidden>OK</button>`;
       document.getElementById('lx-main').appendChild(para);
-      const earnEl = para.querySelector('#lx-earn'), ntEl = para.querySelector('#lx-nt'), okBtn = para.querySelector('#lx-c-ok');
+      const box = para.querySelector('#lx-earn'), okBtn = para.querySelector('#lx-c-ok');
       if (instant) {   // revisit → show all, gate open
-        earnEl.innerHTML = earnLines.map((t) => `<p class="stmt">${t}</p>`).join('');
-        ntEl.innerHTML = noTrade.map((t) => `<p class="stmt">${t}</p>`).join('');
+        box.innerHTML = lines.map((t) => `<p class="stmt">${t}</p>`).join('');
         api.openGate(0); return;
       }
-      const startEarn = () => { this._t1 = App.typewriter.run(earnEl, earnLines, () => { okBtn.hidden = false; okBtn.classList.add('show'); }, { speed: TYPE_SLOW, scope: 'main' }); };
-      if (header) {   // old version → type the header, reveal the bid ≥ price condition, then the earnings
+      const showOk = () => { okBtn.hidden = false; okBtn.classList.remove('show'); void okBtn.offsetWidth; okBtn.classList.add('show'); };
+      let li = 0;
+      const revealNext = () => {   // one sentence per OK; after the last, unlock Next
+        const p = document.createElement('p'); p.className = 'stmt'; p.innerHTML = lines[li]; p.classList.add('lx-fade'); box.appendChild(p);
+        li++;
+        if (li < lines.length) showOk(); else { okBtn.hidden = true; api.openGate(2000); }
+      };
+      okBtn.addEventListener('click', revealNext);
+      if (header) {   // old version → type the header, reveal the condition, then the first sentence
         const headLab = para.querySelector('.lx-th-lab'), headCond = para.querySelector('.lx-th-cond');
         const labText = headLab.textContent; headLab.textContent = ''; headCond.style.opacity = '0';
-        this._th = typeText(headLab, labText, TYPE_SLOW, () => { headCond.style.transition = 'opacity .5s ease'; headCond.style.opacity = '1'; startEarn(); });
-      } else { startEarn(); }   // new version → straight to the earnings
-      okBtn.addEventListener('click', () => {
-        okBtn.style.display = 'none';
-        this._t2 = App.typewriter.run(ntEl, noTrade, () => api.openGate(4000), { speed: TYPE_SLOW, scope: 'main' });   // Next unlocks ~4s after the last OK
-      });
+        this._th = typeText(headLab, labText, TYPE_SLOW, () => { headCond.style.transition = 'opacity .5s ease'; headCond.style.opacity = '1'; revealNext(); });
+      } else { revealNext(); }   // new version → first sentence + OK
     },
     leave() { if (this._th) this._th.cancel(); if (this._t1) this._t1.cancel(); if (this._t2) this._t2.cancel(); (this._s6t || []).forEach(clearTimeout); },
   };

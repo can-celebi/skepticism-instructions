@@ -218,7 +218,7 @@ App.content = {
       title: 'When does a trade happen?',
       priceDemo: true, pdVariant: 'B',
       lines: [
-        'The true value is fixed here. Move your <span class="lx-red">bid</span> and watch the outcome.',
+        'The true value is fixed here. Change your <span class="lx-red">bid</span> and observe when a trade happens.',
         'A trade happens only when your <span class="lx-red">bid</span> is at or above the <span class="lx-blue">price</span>.',
       ],
       hint: 'Move the bid, or press the die to draw a new price.',

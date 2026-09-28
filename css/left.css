@@ -280,8 +280,9 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-bid-slot { transition: opacity .3s ease; }
 .lx-bid-slot.gone { visibility: hidden; }
 .lx-bid-slot.locked { opacity: .4; pointer-events: none; margin-bottom: 30px; }   /* after placing: slider + "Your bid" stay, grayed + fixed, with room before the graph */
-.lx-bid-ok { display: block; margin: 36px 0 0 auto; color: #1a8f5a; border-color: #9ed9bd; }   /* scene OK: right-aligned, greenish (matches the green note) */
-.lx-bid-ok:hover { border-color: #1a8f5a; background: #1fa85c0f; }
+.lx-bid-ok { display: block; margin: 36px 0 0 auto; }   /* scene OK: right-aligned (centered on mobile below) */
+.lx-ok.lx-ok-green { color: #1a8f5a; border-color: #9ed9bd; }   /* only the OK that follows the green note is green */
+.lx-ok.lx-ok-green:hover { border-color: #1a8f5a; background: #1fa85c0f; }
 /* slide 5: "Your bid 3.0" echoes the lavender guess-prompt, value in purple — ties the bid to the guess theme */
 .lx-yourbid { text-align: center; margin-top: 8px; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 100; font-size: 13px; letter-spacing: 4px; text-transform: uppercase; color: #b3a6d0; }
 .lx-yourbid b { display: block; margin-top: 4px; font-size: 30px; font-weight: 200; letter-spacing: 0; color: var(--purple); }
