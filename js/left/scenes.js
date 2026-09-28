@@ -262,13 +262,15 @@ App.scenes = (function () {
   const disclosure = {
     enter(api) {
       api.stage.innerHTML =
-        `<div class="lx-slowrise" id="lx-rise4">` +
+        `<div class="lx-slowrise" id="lx-rise4a">` +                       // graph 1: the seller's 10 reviews
           tvHead() +
           `<div class="lx-box-title">Seller chooses from all 10 reviews</div><div class="lx-bars" id="lx-allb"></div>` +
           `<div class="lx-picklegend"><span class="pk picked">picked</span><span class="pk notpicked">not picked</span></div>` +
           statsHtml('lx-stats-all') +
           `<div class="lx-aidlegend" id="lx-aidleg" hidden><span class="lg hi">above value</span><span class="lg mid">true value</span><span class="lg lo">below value</span></div>` +
           `<div class="lx-cue" id="lx-cue4" hidden>Click the bars to show them to the buyer</div>` +
+        `</div>` +
+        `<div class="lx-slowrise" id="lx-rise4b">` +                       // graph 2: what the buyer actually sees
           `<div class="lx-sep"></div>` +
           `<div class="lx-box-title">What the buyer sees: displayed reviews</div><div class="lx-bars sm lx-shownbox" id="lx-shownb"></div>` +
           statsHtml('lx-stats-shown') +
@@ -277,20 +279,26 @@ App.scenes = (function () {
       // cue reappears on hovering the all-reviews graph; in auto it hides again on leave
       this.cAll.addEventListener('mouseenter', () => { const c = q('lx-cue4'); if (c) { c.hidden = false; c.classList.remove('hide'); } });
       this.cAll.addEventListener('mouseleave', () => { const c = q('lx-cue4'), auto = q('lx-auto') && q('lx-auto').checked; if (c && auto) c.hidden = true; });
-      this.newScenario(api);   // paint an initial sample (hidden) — auto-cycle starts when the graph reveals
-      api.openGate(api.revisit ? 0 : 12000);   // Next appears 12s after entering (no interaction gate)
+      this.newScenario(api);   // paint an initial sample (hidden until each block reveals)
       const guideText = 'Press the die for a new true value, or untick “auto” to go through them yourself.';
       const showControls = () => api.setControls({ die: true, auto: true, autoChecked: true, hold: true, aid: true, guide: ' ' });
-      const fadeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) { g.textContent = guideText; g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } };   // fade in, no typing
+      const fadeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) { g.textContent = guideText; g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } };
       const at = api.S.i;
-      if (api.revisit) { q('lx-rise4').style.transition = 'none'; showControls(); const g = document.querySelector('#lx-controls .lx-guide'); if (g) g.textContent = guideText; q('lx-rise4').classList.add('show'); return; }
-      // first visit: reveal graph + controls, auto-play the disclosure, then the guide types in 5s later
-      this.t = setTimeout(() => {
-        if (api.S.i !== at) return;
-        showControls(); q('lx-rise4').classList.add('show'); this.autoCycle(api); fadeGuide();   // guide shows with the controls, no delay
-      }, 1200);
+      if (api.revisit) {   // Back → everything at once, gate open, no timers
+        q('lx-rise4a').style.transition = 'none'; q('lx-rise4b').style.transition = 'none';
+        q('lx-rise4a').classList.add('show'); q('lx-rise4b').classList.add('show');
+        showControls(); const g = document.querySelector('#lx-controls .lx-guide'); if (g) g.textContent = guideText;
+        api.openGate(0); return;
+      }
+      // first visit: graph 1 → (+3s) graph 2 → (+3s) controls + auto-disclosure → (+1s) Next
+      this._stage = [];
+      const T = (ms, fn) => { this._stage.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms)); };
+      T(300,  () => q('lx-rise4a').classList.add('show'));
+      T(3300, () => q('lx-rise4b').classList.add('show'));
+      T(6300, () => { showControls(); this.autoCycle(api); fadeGuide(); });
+      T(7300, () => api.openGate(0));
     },
-    leave() { clearD(); clearTimeout(this.t); clearTimeout(this.t2); if (this._guideTyper) this._guideTyper.cancel(); },
+    leave() { clearD(); (this._stage || []).forEach(clearTimeout); if (this._guideTyper) this._guideTyper.cancel(); },
     // die → a fresh true value + distribution, manual
     step(api) { clearD(); this.newScenario(api); },
     setAuto(on, api) { if (on) this.autoCycle(api); else { clearD(); this.paint(api); } },

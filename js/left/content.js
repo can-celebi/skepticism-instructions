@@ -110,7 +110,7 @@ App.content = {
       exCase: { tv: 2, bid: 4, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value sometimes means no trade, and rightly so, since trading here would have left you as the buyer worse off.', finalLines: ['You paid 3 for a product worth only 2.', 'Bidding above the true value risks overpaying.'] },
       steps: [{ text: ["The product's value is 2.", 'Your bid is <span class="lx-red" id="lx-exbidnum">4</span>.', 'The sales price ends up at <span class="lx-blue">3</span>.'] }] },
     { id: 'ex-bid-2', scene: 'exBid', title: 'underbidding', manualGate: true,
-      exCase: { tv: 4, bid: 2, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value, you never overpay and never miss a deal.', finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },
+      exCase: { tv: 4, bid: 2, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value, you never miss a good deal.', finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },
       steps: [{ text: ["The product's value is 4.", 'Your bid is <span class="lx-red" id="lx-exbidnum">2</span>.', 'The sales price ends up at <span class="lx-blue">3</span>.'] }] },
     // ex-bid-3 (optimal bid) — PARKED for now (kept, not deleted): after 2 examples we jump to the takeaway.
     // { id: 'ex-bid-3', scene: 'exBid', title: 'optimal bid', manualGate: true,
