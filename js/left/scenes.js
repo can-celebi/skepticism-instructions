@@ -118,6 +118,7 @@ App.scenes = (function () {
       const at = api.S.i;
       // 1) the lead-in types first; 2) once done, the reviews + UI fade in; 3) then the guess prompt; 4) then the bid button
       // 1) lead types; 2) the green sub-line types right after it; 3) the reviews + UI fade in; 4) guess prompt; 5) bid button
+      // lead + green sub-line no longer type (instant, scope 'main'), but still appear one after another; the guess prompt keeps typing
       typeText(q('lx-lead5'), leadText, TYPE_SLOW, () => {
         if (api.S.i !== at) return;
         const sub = q('lx-lead5sub'), subText = sub ? sub.textContent : '';
@@ -129,14 +130,14 @@ App.scenes = (function () {
             if (api.S.i !== at) return;
             prompt = typeText(q('lx-guess-prompt'), promptText, TYPE_SLOW, () => { bidBtn.style.transition = 'opacity .5s ease'; bidBtn.style.opacity = '1'; });
           }, 1400);
-        });
-      });
+        }, 'main');
+      }, 'main');
     }
     const sl = q('lx-slider'), val = q('lx-bidval');
     sl.addEventListener('input', () => { S.bid = round1(+sl.value); val.textContent = S.bid.toFixed(1); });
     q('lx-bid-btn').addEventListener('click', () => {
       prompt.cancel();
-      q('lx-bid-slot').classList.add('gone');
+      q('lx-bid-slot').classList.add('locked'); sl.disabled = true;   // keep the slider + "Your bid" visible, but grayed out and fixed
       const gs = q('lx-gslot'); gs.classList.remove('empty');
       lx.setLine(gs.querySelector('.lx-line'), { tv: S.tv, bid: S.bid });
       const diff = round1(Math.abs(S.bid - S.tv));
@@ -466,8 +467,7 @@ App.scenes = (function () {
     enter(api) {
       api.stage.innerHTML = '';                          // no stage graphic on this slide
       this._api = api; this._shown = false;
-      const stage2 = () => { const s = document.getElementById('lx-s6-stage2'); return s ? (s.closest('p') || s) : null; };
-      this._showStage2 = () => { const p = stage2(); if (p) { p.style.display = ''; p.classList.add('lx-instant-in'); } };
+      this._showStage2 = () => { const s = document.getElementById('lx-s6-stage2'); if (s) { s.style.display = 'block'; s.classList.add('lx-instant-in'); } };
       if (api.revisit) {   // Back → reveal stage 2, hide the explore prompts, show their re-open ⓘ, show part C at once
         this._showStage2();
         document.querySelectorAll('#lx-main .lx-inline-hint').forEach((h) => { h.style.display = 'none'; });
@@ -476,7 +476,7 @@ App.scenes = (function () {
         this.revealC(true);
         return;
       }
-      const p2 = stage2(); if (p2) p2.style.display = 'none';   // first visit: stage 2 (bid rule + explore B) appears only after explore A is closed
+      // first visit: stage 2 stays hidden (inline display:none in the markup, so it never flashes) until explore A is closed
     },
     onInfoClosed(key) {
       if (key === 'priceDemoA') { if (this._showStage2) this._showStage2(); return; }   // stage-1 box closed → reveal the bid rule + stage-2 explore
@@ -740,12 +740,16 @@ App.scenes = (function () {
       const L2 = 'You can use the back button and review the instructions.';
       const L3 = 'When you are ready click the Done button to proceed.';
       if (api.revisit) { q('lx-fn1').textContent = L1; q('lx-fn2').textContent = L2; q('lx-fn3').textContent = L3; api.openGate(0); return; }
-      // no typing, but each line still appears one after another (the settle beat keeps the stagger)
-      this._t = typeText(q('lx-fn1'), L1, TYPE_SLOW, () =>
-        typeText(q('lx-fn2'), L2, TYPE_SLOW, () =>
-          typeText(q('lx-fn3'), L3, TYPE_SLOW, () => api.openGate(0), 'main'), 'main'), 'main');
+      // no typing — each line fades in smoothly, well spaced; Done unlocks only after the last has finished
+      this._t = [];
+      const at = api.S.i, T = (ms, fn) => this._t.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms));
+      const fadeIn = (id, text, ms) => T(ms, () => { const e = q(id); if (e) { e.textContent = text; e.classList.add('lx-fade'); } });
+      fadeIn('lx-fn1', L1, 400);
+      fadeIn('lx-fn2', L2, 2100);
+      fadeIn('lx-fn3', L3, 3800);
+      T(5800, () => api.openGate(0));   // after the third line's fade completes
     },
-    leave() { if (this._t) this._t.cancel(); },
+    leave() { (this._t || []).forEach(clearTimeout); },
   };
 
   // price/earnings (tradeScene) are BENCHED — kept for a future complex trade slide; slide 6 now uses priceInfo

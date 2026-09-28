@@ -14,7 +14,7 @@ App.content = {
         { text: ['Think of a product you bought recently, one where you checked the online reviews first.'] },
         { text: [
           'This experiment recreates a similar scenario as a game between a seller and a buyer.',
-          "<span class=\"lx-gap\"></span>Only here, the buyer's aim is to judge the product's true value.",
+          // "<span class=\"lx-gap\"></span>Only here, the buyer's aim is to judge the product's true value.",
         ] },
         { text: ['<span class="lx-buyer-line">You are the <strong>buyer</strong>.</span>'] },
       ],
@@ -31,12 +31,12 @@ App.content = {
         // archived: "Seller's task: …" / "Your task: …" (bold labels) — replaced with two plain sentences
         { text: [
           'The seller chooses which reviews to display to you.',
-          'You, as the buyer, bid what you believe the product is worth based on the displayed reviews.',
+          'You bid what you believe the product is worth based on the displayed reviews.',
         ] },
         { text: [
           '<span class="lx-hr"></span>',
           'The seller earns more the <span class="lx-key">higher</span> you bid.',
-          '<span class="lx-wideline">You, as the buyer, earn more the <span class="lx-key">closer</span> your bid is to the true value.</span>',
+          '<span class="lx-wideline">You earn more the <span class="lx-key">closer</span> your bid is to the true value.</span>',
         ] },
       ],
     },
@@ -76,7 +76,7 @@ App.content = {
           "After you <span class=\"lx-red\">bid</span>, a <span class=\"lx-blue\">sales price</span> is picked around the product's true value.",
           "<span class=\"lx-explore-wrap\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoA\">explore</button> to see how the price is drawn.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoA\" aria-label=\"more info\" hidden>i</button>",
           // stage 2 — hidden until the stage-1 (priceDemoA) box is explored + closed (see priceInfo scene)
-          "<span class=\"lx-s6-stage2\" id=\"lx-s6-stage2\">Your <span class=\"lx-red\">bid</span> is the maximum <span class=\"lx-blue\">price</span> you are willing to pay:" +
+          "<span class=\"lx-s6-stage2\" id=\"lx-s6-stage2\" style=\"display:none\">Your <span class=\"lx-red\">bid</span> is the maximum <span class=\"lx-blue\">price</span> you are willing to pay:" +
             "<span class=\"lx-conds\">" +
               "<span class=\"lx-cond yes\"><span class=\"lx-cond-txt\">If the <span class=\"lx-blue\">price</span> is at or below your <span class=\"lx-red\">bid</span>, you buy the product automatically.</span><span class=\"lx-cond-tag\">trade happens</span></span>" +
               "<span class=\"lx-cond no\"><span class=\"lx-cond-txt\">If it is above, you don't.</span><span class=\"lx-cond-tag\">no trade</span></span>" +
@@ -107,7 +107,7 @@ App.content = {
     },
     // 8–10 — bidding examples (step-by-step; final message revealed last)
     { id: 'ex-bid-1', scene: 'exBid', title: 'overbidding', manualGate: true,
-      exCase: { tv: 2, bid: 4, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value sometimes means no trade, and rightly so, since trading here would have left you as the buyer worse off.', finalLines: ['You paid 3 for a product worth only 2.', 'Bidding above the true value risks overpaying.'] },
+      exCase: { tv: 2, bid: 4, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value sometimes means no trade, and rightly so, since trading here would have left you worse off.', finalLines: ['You paid 3 for a product worth only 2.', 'Bidding above the true value risks overpaying.'] },
       steps: [{ text: ["The product's value is 2.", 'Your bid is <span class="lx-red" id="lx-exbidnum">4</span>.', 'The sales price ends up at <span class="lx-blue">3</span>.'] }] },
     { id: 'ex-bid-2', scene: 'exBid', title: 'underbidding', manualGate: true,
       exCase: { tv: 4, bid: 2, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value, you never miss a good deal.', finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },

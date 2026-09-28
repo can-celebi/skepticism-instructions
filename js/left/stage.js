@@ -108,7 +108,7 @@ App.stage = (function () {
     const info = $('lx-info-btn'); info.hidden = !sl.info; info.onclick = sl.info ? () => showInfo(sl.info) : null;
     if (debugSel) debugSel.value = String(S.i);   // keep the debug jumper in sync
   }
-  let distChart = null, pdTimer = null, lastInfoKey = null;
+  let distChart = null, pdTimer = null, lastInfoKey = null, pdState = null;   // pdState shared across the slide-6 boxes so the true value carries over
   function closeInfo() { const wasOpen = !$('lx-info-panel').hidden; $('lx-info-panel').hidden = true; if (distChart) { distChart.destroy(); distChart = null; } if (pdTimer) { clearInterval(pdTimer); pdTimer = null; } document.removeEventListener('click', outsideInfo, true); if (wasOpen && active && active.onInfoClosed) active.onInfoClosed(lastInfoKey); }
   function outsideInfo(e) { const p = $('lx-info-panel'); if (p.hidden) return; if (p.contains(e.target) || (e.target.closest && e.target.closest('.lx-inline-info'))) return; closeInfo(); }
   function showInfo(key) {
@@ -118,14 +118,15 @@ App.stage = (function () {
     let html;
     if (info.priceDemo) {   // interactive demo. pdVariant: 'A' = true value + price only; 'B' = bid only (tv fixed 3), trade emphasized; else full (old-6)
       const v = info.pdVariant || 'full';
-      const tvBlock = `<div class="lx-slider-wrap lx-sw-tv"><input type="range" id="lx-pd-tvslider" class="lx-range black" min="1" max="5" step="0.1" value="3"></div><div class="lx-dist-lab">True value <b id="lx-pd-tvval">3.0</b></div>`;
+      const tvSlider = `<div class="lx-slider-wrap lx-sw-tv"><input type="range" id="lx-pd-tvslider" class="lx-range black" min="1" max="5" step="0.1" value="3"></div>`;
+      const tvLabel = `<div class="lx-dist-lab">True value <b id="lx-pd-tvval">3.0</b></div>`;   // read-only in stage 2 (shows the value carried over from stage 1)
       const bidBlock = `<div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-pd-bidslider" class="lx-range red" min="0" max="6" step="0.1" value="3.5"></div><div class="lx-dist-lab">Your <span class="lx-red">bid</span> <b id="lx-pd-bidval">3.5</b></div>`;
       const priceRow = `<div class="lx-price-row"><button id="lx-pd-die" class="lx-bluedie2" title="draw a price"></button><span class="lx-price-txt">Price <b class="lx-blue" id="lx-pd-pricenum" style="opacity:0">—</b></span><label class="lx-pd-auto"><input type="checkbox" id="lx-pd-auto" checked> auto</label></div>`;
       const tradeOut = `<div class="lx-trade-out lx-pd-trade-big" id="lx-pd-trade"></div>`;   // trade result above the graph so it stays visible
       html = info.lines.map((l) => `<p>${l}</p>`).join('') + `<div class="lx-pd-gap"></div>`;
-      if (v === 'A')      html += App.lx.line() + tvBlock + priceRow;                        // stage 1: how the price is drawn around the true value
-      else if (v === 'B') html += tradeOut + App.lx.line() + bidBlock + priceRow;            // stage 2: move the bid, watch the trade flip
-      else                html += tradeOut + App.lx.line() + tvBlock + bidBlock + priceRow;  // full (old-6)
+      if (v === 'A')      html += App.lx.line() + tvSlider + tvLabel + priceRow;                        // stage 1: how the price is drawn around the true value
+      else if (v === 'B') html += tradeOut + App.lx.line() + tvLabel + bidBlock + priceRow;             // stage 2: true value fixed (carried over), move the bid
+      else                html += tradeOut + App.lx.line() + tvSlider + tvLabel + bidBlock + priceRow;  // full (old-6)
     } else {
       html = info.lines.map((l) => `<p>${l}</p>`).join('');
       if (info.dist) html += `<div class="lx-dist"><canvas id="lx-dist-canvas"></canvas></div>` +
@@ -162,8 +163,14 @@ App.stage = (function () {
     const flag = document.createElement('div'); flag.className = 'lx-pd-flag'; flag.hidden = true; root.appendChild(flag);
     const numEl = $('lx-pd-pricenum'), die = $('lx-pd-die'), auto = $('lx-pd-auto'), tradeEl = $('lx-pd-trade');
     const tvsl = $('lx-pd-tvslider'), tvval = $('lx-pd-tvval'), bidsl = $('lx-pd-bidslider'), bidval = $('lx-pd-bidval');
-    const st = { tv: 3.0, bid: 3.5, price: null };
+    if (!pdState) pdState = { tv: 3.0, bid: 3.5, price: null };
+    const st = pdState;   // shared across the slide-6 boxes: the true value set in box A carries into box B
     const hasBid = !!bidsl;   // variant A has no bid slider (and no trade); B/full do
+    if (tvsl) tvsl.value = st.tv;                         // reflect the shared state in whichever controls exist
+    if (tvval) tvval.textContent = st.tv.toFixed(1);
+    if (bidsl) bidsl.value = st.bid;
+    if (bidval) bidval.textContent = st.bid.toFixed(1);
+    if (numEl && st.price != null) { numEl.textContent = st.price.toFixed(1); numEl.style.opacity = '1'; }
     const r1 = (x) => Math.round(x * 10) / 10, pct = (v) => (Math.max(0, Math.min(6, v)) / 6) * 100;
     const paint = () => {
       App.lx.setLine(root, { tv: st.tv, bid: hasBid ? st.bid : null, price: st.price, band: true, tvTag: false, bidTag: false, priceTag: false });
