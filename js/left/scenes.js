@@ -119,13 +119,15 @@ App.scenes = (function () {
       const okBtn5 = q('lx-bid-ok');
       const gslotEl = q('lx-gslot'), bidSlotEl = q('lx-bid-slot'), btnslotEl = q('lx-btnslot');
       [gslotEl, bidSlotEl, btnslotEl].forEach((el) => { if (el) el.style.display = 'none'; });   // graph + slider + button hidden until the final OK
-      const at = api.S.i;
-      const fadeInto = (el, text) => { if (!el) return; el.textContent = text; el.style.opacity = '1'; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
+      if (r) r.style.display = 'none';                                   // reviews block takes no space until the example begins
+      { const ld = q('lx-lead5'); if (ld) ld.style.display = 'none'; }   // empty lead takes no space until begin() (so the first OK hugs the two lines)
+      { const sub = q('lx-lead5sub'); if (sub) sub.style.display = 'none'; }   // green note takes no space until its stage
+      const fadeInto = (el, text) => { if (!el) return; el.style.display = ''; el.textContent = text; el.style.opacity = '1'; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
       const fadeShow = (el) => { if (el) { el.style.display = ''; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); } };
       const showOk5 = () => { if (okBtn5) { okBtn5.hidden = false; okBtn5.classList.remove('show'); void okBtn5.offsetWidth; okBtn5.classList.add('show'); } };
       // begin() runs when the OK after the two intro lines is clicked (bid scene's onStepsDone):
       // 1) lead + review graphs  →OK→  2) green sub-line  →OK→  3) guess prompt + slider + bid button
-      begin5 = () => { fadeInto(q('lx-lead5'), leadText); if (r) r.classList.add('show'); showOk5(); };
+      begin5 = () => { fadeInto(q('lx-lead5'), leadText); if (r) { r.style.display = ''; requestAnimationFrame(() => r.classList.add('show')); } showOk5(); };
       let stage = 1;
       okBtn5.addEventListener('click', () => {
         if (stage === 1) { stage = 2; const sub = q('lx-lead5sub'); fadeInto(sub, sub ? sub.textContent : ''); okBtn5.classList.add('lx-ok-green'); showOk5(); }   // 2nd OK is green (it follows the green note)
