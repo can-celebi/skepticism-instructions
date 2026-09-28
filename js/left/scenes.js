@@ -56,9 +56,9 @@ App.scenes = (function () {
   function bidSlot(bid) { return `<div class="lx-bid-slot" id="lx-bid-slot">${sliderRaw('lx-slider', bid, 'black')}<div class="lx-yourbid">Your bid <b id="lx-bidval">${bid.toFixed(1)}</b></div></div>`; }
 
   // tiny plain-text typewriter (faster/cancellable) for accent lines like the guess prompt & score
-  function typeText(el, text, speed, onDone) {
+  function typeText(el, text, speed, onDone, scope) {
     if (!el) return { cancel() {} };
-    if (App.noType && App.noType('accent')) {   // accent lines keep typing under the toggle; instant only under OS reduce-motion
+    if (App.noType && App.noType(scope || 'accent')) {   // accent lines keep typing under the toggle unless scope 'main'; instant under OS reduce-motion
       el.textContent = text;
       const d = (App.revealDelay && App.revealDelay()) || 0;
       if (d <= 0) { if (onDone) onDone(); return { cancel() {} }; }
@@ -95,13 +95,15 @@ App.scenes = (function () {
       `<div class="lx-lead-sub" id="lx-lead5sub" style="opacity:0">During the game, a seller may show all, some or none of them.</div>` +
       `<div class="lx-slowrise" id="lx-rise5">` +
       `<div class="lx-box-title">Displayed reviews</div><div class="lx-bars sm" id="lx-shownbars"></div>` +
+      statsHtml('lx-stats5') +
       bidSlot(S.bid) +
       `<div class="lx-graphic-slot empty tight" id="lx-gslot"><div class="lx-guess-prompt" id="lx-guess-prompt"></div>${lx.line()}</div>` +
       `<div class="lx-score" id="lx-score" hidden></div>` +
-      `<div class="lx-btn-slot" id="lx-btnslot"><button id="lx-bid-btn" class="lx-btn ghost">Place bid</button></div>` +
+      `<div class="lx-btn-slot" id="lx-btnslot"><button id="lx-bid-btn" class="lx-btn ghost">Place your bid</button></div>` +
       `</div>`;
     q('lx-gslot').querySelector('.lx-line').classList.add('bid-black');   // slide 5: bid bar black too
     lx.bars(q('lx-shownbars'), shownVals, {});
+    setStats('lx-stats5', shownVals);   // min / avg / max of the displayed reviews, below the bars
     const r = q('lx-rise5'), bidBtn = q('lx-bid-btn'), promptText = "Can you guess the product's true value?";
     const leadText = 'Below is an example of a seller who displayed all 10 reviews.';
     let prompt = { cancel() {} };
@@ -137,17 +139,10 @@ App.scenes = (function () {
       q('lx-bid-slot').classList.add('gone');
       const gs = q('lx-gslot'); gs.classList.remove('empty');
       lx.setLine(gs.querySelector('.lx-line'), { tv: S.tv, bid: S.bid });
-      const diff = round1(Math.abs(S.bid - S.tv)), fb = guessFeedback(diff);
-      const sub = diff <= 0.0001 ? 'spot on — you matched the true value' : `off by ${diff.toFixed(1)}`;
+      const diff = round1(Math.abs(S.bid - S.tv));
       const sc = q('lx-score');
-      sc.innerHTML = `<div class="lx-score-main" id="lx-score-main" style="color:${fb.color}"></div>` +
-        `<div class="lx-score-sub" id="lx-score-sub"></div>` +
-        `<div class="lx-score-goal" id="lx-score-goal" style="opacity:0">aim to bid as close to the true value as possible</div>`;
+      sc.innerHTML = `<div class="lx-score-only" id="lx-score-only">off by ${diff.toFixed(1)}</div>`;   // no guess-label, just the distance, large
       sc.hidden = false; void sc.offsetWidth; sc.classList.add('lx-fadein');
-      typeText(q('lx-score-main'), fb.label, TYPE_SLOW, () => typeText(q('lx-score-sub'), sub, TYPE_SLOW, () => {
-        const at = api.S.i;
-        setTimeout(() => { if (api.S.i !== at) return; const g = q('lx-score-goal'); if (g) { g.style.transition = 'opacity 1.3s ease'; g.style.opacity = '1'; } }, 1500);
-      }));
       q('lx-btnslot').innerHTML = '<button id="lx-try" class="lx-try-btn">↺ try again</button>';
       q('lx-try').addEventListener('click', () => setup.replay(api));
       api.openGate(5000);   // Next unlocks 5s after the bid is placed
@@ -239,7 +234,11 @@ App.scenes = (function () {
         if (g) { g.textContent = guideText; if (!api.revisit) { g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } }   // fade in, no typing
         api.openGate(api.revisit ? 0 : 6000);   // Next unlocks 6s after the graph is revealed
       };
-      if (api.revisit) { q('lx-rev3').style.transition = 'none'; this._reveal(); return; }
+      if (api.revisit) {   // Back → graph already unlocked; swap the explore prompt for the small re-open ⓘ
+        const ew = q('lx-explore-wrap'); if (ew) ew.style.display = 'none';
+        const ro = q('lx-reopen'); if (ro) ro.hidden = false;
+        q('lx-rev3').style.transition = 'none'; this._reveal(); return;
+      }
       // first visit: hard-gated — the graph reveals ONLY after the info box is opened + closed (onInfoClosed)
     },
     leave() { if (this._guideTyper) this._guideTyper.cancel(); },
@@ -259,12 +258,13 @@ App.scenes = (function () {
       api.stage.innerHTML =
         `<div class="lx-slowrise" id="lx-rise4">` +
           tvHead() +
-          `<div class="lx-box-title">All 10 reviews</div><div class="lx-bars" id="lx-allb"></div>` +
+          `<div class="lx-box-title">Seller chooses from all 10 reviews</div><div class="lx-bars" id="lx-allb"></div>` +
+          `<div class="lx-picklegend"><span class="pk picked">picked</span><span class="pk notpicked">not picked</span></div>` +
           statsHtml('lx-stats-all') +
           `<div class="lx-aidlegend" id="lx-aidleg" hidden><span class="lg hi">above value</span><span class="lg mid">true value</span><span class="lg lo">below value</span></div>` +
           `<div class="lx-cue" id="lx-cue4" hidden>Click the bars to show them to the buyer</div>` +
           `<div class="lx-sep"></div>` +
-          `<div class="lx-box-title">Displayed reviews</div><div class="lx-bars sm lx-shownbox" id="lx-shownb"></div>` +
+          `<div class="lx-box-title">What the buyer sees: displayed reviews</div><div class="lx-bars sm lx-shownbox" id="lx-shownb"></div>` +
           statsHtml('lx-stats-shown') +
         `</div>`;
       this.cAll = q('lx-allb'); this.cShown = q('lx-shownb');
@@ -507,13 +507,14 @@ App.scenes = (function () {
           ? `You avoided overpaying by not buying a product worth ${tv} for ${price}.`
           : `You missed a deal to buy a product worth ${tv} for ${price}.`;
       };
+      const isBuyer = (App.config.TREATMENT || 'BUYER') === 'BUYER';   // show only the participant's own payoff ("Your payoff")
       const payoffs = (bid) => { const trade = bid >= price; return { trade, buyer: trade ? round1(tv - price) : 0, seller: trade ? round1(bid - (tv - 0.3)) : 0 }; };
-      const pfHtml = (bid, cls) => { const p = payoffs(bid); return `<div class="lx-pf-cell ${cls}" id="lx-expfa">Your payoff <b class="${p.buyer < 0 ? 'lx-neg' : ''}">${p.buyer.toFixed(1)}</b></div><div class="lx-pf-cell ${cls}" id="lx-expfb">Seller's payoff <b>${p.seller.toFixed(1)}</b></div>`; };
-      const calcStmts = (bid) => { const p = payoffs(bid); return p.trade
-        ? [`You: value − price = ${tv.toFixed(1)} − ${price.toFixed(1)} = <b>${p.buyer.toFixed(1)}</b>`,
-           `Seller: bid − (value − 0.3) = ${bid.toFixed(1)} − ${round1(tv - 0.3).toFixed(1)} = <b>${p.seller.toFixed(1)}</b>`,
-           `<span class="lx-cost-note">production cost = value − 0.3</span>`]
-        : ['No trade, so both earn <b>0</b>.']; };
+      const pfHtml = (bid, cls) => { const p = payoffs(bid), v = isBuyer ? p.buyer : p.seller; return `<div class="lx-pf-cell lx-pf-single ${cls}" id="lx-expfa">Your payoff <b class="${v < 0 ? 'lx-neg' : ''}">${v.toFixed(1)}</b></div>`; };
+      const calcStmts = (bid) => { const p = payoffs(bid); if (!p.trade) return ['No trade, so you earn <b>0</b>.'];
+        return isBuyer
+          ? [`You: value − price = ${tv.toFixed(1)} − ${price.toFixed(1)} = <b>${p.buyer.toFixed(1)}</b>`]
+          : [`You: bid − (value − 0.3) = ${bid.toFixed(1)} − ${round1(tv - 0.3).toFixed(1)} = <b>${p.seller.toFixed(1)}</b>`,
+             `<span class="lx-cost-note">production cost = value − 0.3</span>`]; };
       const advice = c.finalLines.slice(1).concat(c.strategy ? [c.strategy] : []);
       api.stage.innerHTML =
         `<div class="lx-graphic-slot">${lx.line()}</div>` +
@@ -544,7 +545,7 @@ App.scenes = (function () {
             const h = q('lx-exhint'); if (h) h.classList.add('done');
             if (c.gateDoneText) {   // delay Next: type a closing note first, then unlock
               const msg = q('lx-exgatemsg');
-              this._gate = typeText(msg, c.gateDoneText, TYPE_SLOW, () => api.openGate(0));
+              this._gate = typeText(msg, c.gateDoneText, TYPE_SLOW, () => api.openGate(0), 'main');
             } else { api.openGate(0); }
           }
         } else { this._interacted = true; api.openGate(0); }   // other examples: unlock on first interaction
@@ -568,14 +569,13 @@ App.scenes = (function () {
       T(3200, () => lx.setLine(line, { tv: tv, bid: c.bid, price: price, band: true }));
       T(4400, () => { q('lx-expf').innerHTML = pfHtml(c.bid, 'lx-stg'); });
       T(4600, () => { const e = q('lx-expfa'); if (e) e.classList.add('show'); });
-      T(5600, () => { const e = q('lx-expfb'); if (e) e.classList.add('show'); });
-      T(6800, () => {
+      T(6800, () => {   // text is instant (scope 'main'); the staged T() timings are kept
         if (App.typewriter) {
           this._calc = App.typewriter.run(q('lx-excalcbox'), calcStmts(c.bid), () => {
             T(1200, () => { this._recap = typeText(q('lx-recap'), recapFor(c.bid), TYPE_SLOW, () => {
-              T(1500, () => { this._advice = App.typewriter.run(q('lx-advice'), advice, () => { q('lx-exbid').classList.add('show'); }, { speed: TYPE_SLOW }); });   // Next stays gated until the user drags the slider
-            }); });
-          }, { speed: TYPE_SLOW });
+              T(1500, () => { this._advice = App.typewriter.run(q('lx-advice'), advice, () => { q('lx-exbid').classList.add('show'); }, { speed: TYPE_SLOW, scope: 'main' }); });   // Next stays gated until the user drags the slider
+            }, 'main'); });
+          }, { speed: TYPE_SLOW, scope: 'main' });
         } else { update(c.bid); q('lx-advice').innerHTML = advice.map((l) => `<div>${l}</div>`).join(''); q('lx-exbid').classList.add('show'); }
       });
     },

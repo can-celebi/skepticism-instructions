@@ -95,7 +95,7 @@ App.stage = (function () {
     $('lx-next').textContent = nextIdx(S.i) === S.i ? 'Done' : 'Next';
     $('lx-next').disabled = !S.gateOpen;
   }
-  function unlockNextSoon(delay) { const at = S.i; setTimeout(() => { if (S.i === at) { S.gateOpen = true; S.done.add(at); refreshNav(); showNextHint(at); } }, delay); }
+  function unlockNextSoon(delay) { const at = S.i; setTimeout(() => { if (S.i === at) { const firstTime = !S.done.has(at); S.gateOpen = true; S.done.add(at); refreshNav(); showNextHint(at); if (firstTime && App.bridge && App.bridge.visited) App.bridge.visited(SLIDES[at]); } }, delay); }   // PORT SEAM: gate passed = page finished → record lastPageCompleted
   function showNextHint(i) { const sl = SLIDES[i], h = $('lx-nexthint'); if (!h || !sl || !sl.nextHint) return; h.textContent = sl.nextHint; h.hidden = false; void h.offsetWidth; h.classList.add('show'); }
   function renderChrome() {
     const sl = SLIDES[S.i];
@@ -259,15 +259,26 @@ App.stage = (function () {
 
   function mount() {
     S = { i: -1, step: 0, tv: null, reviews: [], disclosed: new Set(), product: null, bid: 3.0, price: null,
-          hold: false, aid: false, gateOpen: false, done: new Set() };
+          hold: false, aid: false, gateOpen: false, done: new Set(), startTime: Date.now() };
+    if (App.bridge && App.bridge.setup) App.bridge.setup();   // PORT SEAM: receive setup-instruction2-CLIENT {textList, lastFinishedPage} + jumpTo
     buildDots();
     $('lx-ok').addEventListener('click', advanceStep);
     $('lx-main').addEventListener('click', (e) => {
-      const btn = e.target.closest('.lx-inline-info');
-      if (btn) { e.stopPropagation(); btn.classList.add('lx-info-seen'); $('lx-main').querySelectorAll('.lx-inline-hint').forEach((h) => { h.style.display = 'none'; }); showInfo(btn.dataset.info); return; }   // stop nagging once opened; drop the directive
+      const btn = e.target.closest('.lx-inline-info, .lx-explore-btn');
+      if (btn) {
+        e.stopPropagation(); btn.classList.add('lx-info-seen');
+        $('lx-main').querySelectorAll('.lx-inline-hint').forEach((h) => { h.style.display = 'none'; });
+        const ew = $('lx-explore-wrap'); if (ew) ew.style.display = 'none';   // explore used → hide the prompt, reveal the re-open ⓘ (slide 3; no-op elsewhere)
+        const ro = $('lx-reopen'); if (ro) ro.hidden = false;
+        showInfo(btn.dataset.info); return;
+      }
       if (typeHandle) typeHandle.skip();
     });
-    $('lx-next').addEventListener('click', () => go(nextIdx(S.i)));
+    $('lx-next').addEventListener('click', () => {
+      const nxt = nextIdx(S.i);
+      if (nxt === S.i) { if (App.bridge && App.bridge.done) App.bridge.done(Date.now() - S.startTime); return; }   // last slide: "Done" → completion
+      go(nxt);
+    });
     $('lx-back').addEventListener('click', () => go(prevIdx(S.i)));
     $('lx-info-close').addEventListener('click', closeInfo);
     go(0);

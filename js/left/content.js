@@ -11,7 +11,7 @@ App.content = {
         '<span class="lx-gap-lg"></span>You will now go through instructions on how to play the game, followed by a short quiz, and then the game itself.',
       ],
       steps: [
-        { text: ['Think of a product you bought recently, where the reviews you saw decided how much you paid.'] },
+        { text: ['Think of a product you bought recently, one where you checked the online reviews first.'] },
         { text: [
           'This experiment recreates a similar scenario as a game between a seller and a buyer.',
           "<span class=\"lx-gap\"></span>Only here, the buyer's aim is to judge the product's true value.",
@@ -46,7 +46,8 @@ App.content = {
       steps: [
         { text: [
           'The seller has <span class="lx-key">10 reviews</span> to show.',
-          'Each review is close to the true value but can sometimes be farther off. <button class="lx-inline-info" data-info="reviewSpread" aria-label="more info">i</button> <span class="lx-inline-hint">please click the info button</span>',
+          'Each review is close to the true value but can sometimes be farther off.',
+          '<span class="lx-explore-wrap" id="lx-explore-wrap">Click <button class="lx-explore-btn" data-info="reviewSpread">explore</button> to see how the reviews are spread out.</span><button class="lx-inline-info lx-reopen" id="lx-reopen" data-info="reviewSpread" aria-label="more info" hidden>i</button>',
         ] },
       ],
     },
@@ -72,7 +73,7 @@ App.content = {
       id: 'price', scene: 'priceInfo', title: 'trade', manualGate: true,
       steps: [
         { text: [
-          "After you <span class=\"lx-red\">bid</span>, a hidden <span class=\"lx-blue\">sales price</span> is picked around the product's true value.",
+          "After you <span class=\"lx-red\">bid</span>, a <span class=\"lx-blue\">sales price</span> is picked around the product's true value.",
           '<span class="lx-gap"></span>Your <span class="lx-red">bid</span> is the maximum <span class="lx-blue">price</span> you are willing to pay:',
           'if the <span class="lx-blue">price</span> is at or below your <span class="lx-red">bid</span>, you buy the product automatically.',
           'If it is above, you don\'t. <button class="lx-inline-info" data-info="priceDemo" aria-label="more info">i</button> <span class="lx-inline-hint">please click the info button</span>',
@@ -93,10 +94,9 @@ App.content = {
     {
       id: 'examples-intro', title: 'examples',
       steps: [{ text: [
-        "Let's consider 3 simple examples to understand:",
+        "Let's consider 2 simple examples to understand:",
         '<span class="lx-gap-lg"></span>1. Overbidding / Overestimation of the true value',
         '<span class="lx-gap-lg"></span>2. Underbidding / Underestimation of the true value',
-        '<span class="lx-gap-lg"></span>3. Optimal bid',
       ] }],
     },
     // 8–10 — bidding examples (step-by-step; final message revealed last)
@@ -106,10 +106,11 @@ App.content = {
     { id: 'ex-bid-2', scene: 'exBid', title: 'underbidding', manualGate: true,
       exCase: { tv: 4, bid: 2, price: 3, gateOnTrueValue: true, finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },
       steps: [{ text: ["The product's value is 4.", 'Your bid is <span class="lx-red" id="lx-exbidnum">2</span>.', 'The sales price ends up at <span class="lx-blue">3</span>.'] }] },
-    { id: 'ex-bid-3', scene: 'exBid', title: 'optimal bid', manualGate: true,
-      exCase: { tv: 3, bid: 3, price: 2, finalLines: ['You paid 2 for a product worth 3.', 'Bidding the true value, you never overpay and never miss a deal.'], strategy: 'It is best to bid what you <span class="lx-key">believe</span> the true value is.' },
-      steps: [{ text: ["The product's value is 3.", 'Your bid is <span class="lx-red" id="lx-exbidnum">3</span>.', 'The sales price ends up at <span class="lx-blue">2</span>.'] }] },
-    // moral / lessons from the three examples — each statement behind its own OK
+    // ex-bid-3 (optimal bid) — PARKED for now (kept, not deleted): after 2 examples we jump to the takeaway.
+    // { id: 'ex-bid-3', scene: 'exBid', title: 'optimal bid', manualGate: true,
+    //   exCase: { tv: 3, bid: 3, price: 2, finalLines: ['You paid 2 for a product worth 3.', 'Bidding the true value, you never overpay and never miss a deal.'], strategy: 'It is best to bid what you <span class="lx-key">believe</span> the true value is.' },
+    //   steps: [{ text: ["The product's value is 3.", 'Your bid is <span class="lx-red" id="lx-exbidnum">3</span>.', 'The sales price ends up at <span class="lx-blue">2</span>.'] }] },
+    // moral / lessons from the examples — each statement behind its own OK
     {
       id: 'lessons', title: 'takeaway',
       steps: [

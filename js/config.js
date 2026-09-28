@@ -120,6 +120,7 @@ App.util = {
 //   - set App.config.typeAnimation = false below (ships the deck with typing off)
 //   - add ?notype (or ?instant) to the URL   e.g. .../skepticism-instructions/?notype
 //   - the OS "reduce motion" accessibility setting
+App.config.TREATMENT = 'BUYER';    // 'BUYER' or 'SELLER' — drives which single payoff ("Your payoff") is shown in the examples
 App.config.typeAnimation = false;  // DEFAULT: main instructional text is not typed (fades in); accent lines still type. Set true to type the main text again.
 App.config.instantRevealMs = 600;  // with typing OFF, wait this long before firing onDone (keeps the OK/gate reveal smooth instead of instant)
 App.reduceMotion = function () {
