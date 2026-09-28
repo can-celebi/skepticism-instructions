@@ -120,9 +120,9 @@ App.scenes = (function () {
       const fadeInto = (el, text) => { if (!el) return; el.textContent = text; el.style.opacity = '1'; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
       // hold ~3s (nothing yet), fade in the lead; +1s fade in the green sub-line; then the reviews + the (still-typed) guess prompt
       T(3000, () => fadeInto(q('lx-lead5'), leadText));
-      T(4000, () => { const sub = q('lx-lead5sub'); fadeInto(sub, sub ? sub.textContent : ''); });
-      T(5200, () => { if (r) r.classList.add('show'); });
-      T(6600, () => { prompt = typeText(q('lx-guess-prompt'), promptText, TYPE_SLOW, () => { bidBtn.style.transition = 'opacity .5s ease'; bidBtn.style.opacity = '1'; }); });
+      T(5000, () => { const sub = q('lx-lead5sub'); fadeInto(sub, sub ? sub.textContent : ''); });   // +1s more before the green sub-line
+      T(8200, () => { if (r) r.classList.add('show'); });   // +2s more after the sub-line before the reviews
+      T(9600, () => { prompt = typeText(q('lx-guess-prompt'), promptText, TYPE_SLOW, () => { bidBtn.style.transition = 'opacity .5s ease'; bidBtn.style.opacity = '1'; }); });
     }
     const sl = q('lx-slider'), val = q('lx-bidval');
     sl.addEventListener('input', () => { S.bid = round1(+sl.value); val.textContent = S.bid.toFixed(1); });
