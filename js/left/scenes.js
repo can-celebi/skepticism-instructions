@@ -597,7 +597,7 @@ App.scenes = (function () {
         if (App.typewriter) {
           this._calc = App.typewriter.run(q('lx-excalcbox'), calcStmts(c.bid), () => {
             T(1200, () => { this._recap = typeText(q('lx-recap'), recapFor(c.bid), TYPE_SLOW, () => {
-              T(1500, () => { this._advice = App.typewriter.run(q('lx-advice'), advice, () => { q('lx-exbid').classList.add('show'); }, { speed: TYPE_SLOW, scope: 'main' }); });   // Next stays gated until the user drags the slider
+              T(1500, () => { this._advice = App.typewriter.run(q('lx-advice'), advice, () => { T(3000, () => q('lx-exbid').classList.add('show')); }, { speed: TYPE_SLOW, scope: 'main' }); });   // hold 3s so the text above can be read before the interactive slider slides in
             }, 'main'); });
           }, { speed: TYPE_SLOW, scope: 'main' });
         } else { update(c.bid); q('lx-advice').innerHTML = advice.map((l) => `<div>${l}</div>`).join(''); q('lx-exbid').classList.add('show'); }
