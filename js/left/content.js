@@ -68,6 +68,7 @@ App.content = {
           'You only see the reviews selected by the seller.',
           "Your goal is to bid the product's true value.",
         ] },
+        { text: [''] },   // OK here → the example (lead + reviews) begins (see the bid scene's onStepsDone)
       ],
     },
     // 6 — price & trade (text + interactive price info box; earnings text folded in as part C)
@@ -76,14 +77,14 @@ App.content = {
       steps: [
         { text: [
           "After you <span class=\"lx-red\">bid</span>, a <span class=\"lx-blue\">sales price</span> is picked around the product's true value.",
-          "<span class=\"lx-explore-wrap\" id=\"lx-expwrap-a\" style=\"display:none\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoA\">explore</button> to see how the price is drawn.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoA\" aria-label=\"more info\" hidden>i</button>",
+          "<span class=\"lx-explore-wrap\" id=\"lx-expwrap-a\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoA\">explore</button> to see how the price is drawn.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoA\" aria-label=\"more info\" hidden>i</button>",
           // stage 2 — hidden until the stage-1 (priceDemoA) box is explored + closed (see priceInfo scene)
           "<span class=\"lx-s6-stage2\" id=\"lx-s6-stage2\" style=\"display:none\">Your <span class=\"lx-red\">bid</span> is the maximum <span class=\"lx-blue\">price</span> you are willing to pay:" +
             "<span class=\"lx-conds\">" +
               "<span class=\"lx-cond yes\"><span class=\"lx-cond-txt\">If the <span class=\"lx-blue\">price</span> is at or below your <span class=\"lx-red\">bid</span>, you buy the product automatically.</span><span class=\"lx-cond-tag\">trade happens</span></span>" +
               "<span class=\"lx-cond no\"><span class=\"lx-cond-txt\">If the <span class=\"lx-blue\">price</span> is above your <span class=\"lx-red\">bid</span>, you don't buy the product.</span><span class=\"lx-cond-tag\">no trade</span></span>" +
             "</span>" +
-            "<span class=\"lx-explore-wrap\" id=\"lx-expwrap-b\" style=\"display:none\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoB\">explore</button> to see when a trade happens.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoB\" aria-label=\"more info\" hidden>i</button>" +
+            "<span class=\"lx-explore-wrap\" id=\"lx-expwrap-b\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoB\">explore</button> to see when a trade happens.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoB\" aria-label=\"more info\" hidden>i</button>" +
           "</span>",
         ] },
       ],

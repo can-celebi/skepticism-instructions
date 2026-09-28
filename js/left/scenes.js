@@ -107,7 +107,7 @@ App.scenes = (function () {
     setStats('lx-stats5', shownVals);   // min / avg / max of the displayed reviews, below the bars
     const r = q('lx-rise5'), bidBtn = q('lx-bid-btn'), promptText = "Can you guess the product's true value?";
     const leadText = 'Below is an example of a seller who displayed all 10 reviews.';
-    let prompt = { cancel() {} };
+    let prompt = { cancel() {} }, begin5 = null;   // begin5: first-visit deferred reveal, run by the scene on the intro-lines OK
     if (api.revisit || setup.replayed) {                 // Back or try-again → lead + guess shown at once, no re-typing
       q('lx-lead5').textContent = leadText;
       { const sub = q('lx-lead5sub'); if (sub) sub.style.opacity = '1'; }
@@ -123,9 +123,9 @@ App.scenes = (function () {
       const fadeInto = (el, text) => { if (!el) return; el.textContent = text; el.style.opacity = '1'; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
       const fadeShow = (el) => { if (el) { el.style.display = ''; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); } };
       const showOk5 = () => { if (okBtn5) { okBtn5.hidden = false; okBtn5.classList.remove('show'); void okBtn5.offsetWidth; okBtn5.classList.add('show'); } };
-      const T = (ms, fn) => setTimeout(() => { if (api.S.i === at) fn(); }, ms);
-      // OK-gated: (after ~8s reading the text above) 1) lead + review graphs  →OK→  2) green sub-line  →OK→  3) guess prompt + slider + bid button
-      T(8000, () => { fadeInto(q('lx-lead5'), leadText); if (r) r.classList.add('show'); showOk5(); });
+      // begin() runs when the OK after the two intro lines is clicked (bid scene's onStepsDone):
+      // 1) lead + review graphs  →OK→  2) green sub-line  →OK→  3) guess prompt + slider + bid button
+      begin5 = () => { fadeInto(q('lx-lead5'), leadText); if (r) r.classList.add('show'); showOk5(); };
       let stage = 1;
       okBtn5.addEventListener('click', () => {
         if (stage === 1) { stage = 2; const sub = q('lx-lead5sub'); fadeInto(sub, sub ? sub.textContent : ''); okBtn5.classList.add('lx-ok-green'); showOk5(); }   // 2nd OK is green (it follows the green note)
@@ -151,6 +151,7 @@ App.scenes = (function () {
       q('lx-try').addEventListener('click', () => setup.replay(api));
       api.openGate(5000);   // Next unlocks 5s after the bid is placed
     });
+    return begin5;   // scene runs this on the OK after the two intro lines (null on revisit/replay)
   }
 
   // ---- true-value heading helper ----
@@ -339,7 +340,8 @@ App.scenes = (function () {
   // -------------------------------------------------- Slide 5: bid
   const bid = {
     enter(api) { this.fresh(api, false); },
-    fresh(api, replayed) { const S = api.S; draw(S, false); const disc = S.reviews.map((_, i) => i); buildBid(api, { tv: S.tv, reviews: S.reviews, disclosed: disc, replayed: !!replayed, replay: (a) => this.fresh(a, true) }); },   // always show all 10 reviews (no cherry-pick bias)
+    fresh(api, replayed) { const S = api.S; draw(S, false); const disc = S.reviews.map((_, i) => i); this._begin5 = buildBid(api, { tv: S.tv, reviews: S.reviews, disclosed: disc, replayed: !!replayed, replay: (a) => this.fresh(a, true) }); },   // always show all 10 reviews (no cherry-pick bias)
+    onStepsDone() { if (this._begin5) { this._begin5(); this._begin5 = null; } },   // OK after the two intro lines → begin the example
   };
 
   // -------------------------------------------------- Slides 6 & 7: price / earnings (staged reveal)
@@ -485,16 +487,11 @@ App.scenes = (function () {
         this.revealC(true);
         return;
       }
-      // first visit: stage 2 stays hidden (inline display:none in the markup, so it never flashes) until explore A is closed
-      this._s6t = [];
-      const at = api.S.i, T = (ms, fn) => this._s6t.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms));
-      const reveal = (id) => { const e = document.getElementById(id); if (e) { e.style.display = 'inline-block'; e.classList.add('lx-fade'); } };
-      this._revealExpB = () => T(4000, () => reveal('lx-expwrap-b'));   // explore-2 prompt, 4s after the bid rule appears
-      T(2000, () => reveal('lx-expwrap-a'));                            // explore-1 prompt, 2s after the sentence above
+      // first visit: explore prompts now appear inline with their text (no delay); stage 2 stays hidden until explore A is closed
     },
     onInfoClosed(key) {
-      if (key === 'priceDemoA') { if (this._showStage2) this._showStage2(); if (this._revealExpB) this._revealExpB(); return; }   // stage-1 closed → bid rule + (delayed) stage-2 explore
-      if (key === 'priceDemoB' || key === 'priceDemo') this.revealC(false);              // trade box closed → part C (old-6 uses 'priceDemo')
+      if (key === 'priceDemoA') { if (this._showStage2) this._showStage2(); return; }   // stage-1 closed → reveal the bid rule + stage-2 explore
+      if (key === 'priceDemoB' || key === 'priceDemo') this.revealC(false);            // trade box closed → part C (old-6 uses 'priceDemo')
     },
     revealC(instant) {
       if (this._shown) return; this._shown = true;
