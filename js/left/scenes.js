@@ -274,7 +274,10 @@ App.scenes = (function () {
       this._auto = true;       // rotation runs from graph 1 on; the auto checkbox (shown later) just toggles this
       api.S.hold = true;       // hold the true value constant from the start (checkbox is ticked by default) — rotation varies the reviews, not the value
       const guideText = 'Press the die for a new true value, or untick “auto” to go through them yourself.';
-      const showControls = () => api.setControls({ die: true, auto: true, autoChecked: true, hold: true, aid: true, guide: ' ' });
+      const showControls = (fade) => {
+        api.setControls({ die: true, auto: true, autoChecked: true, hold: true, aid: true, guide: ' ' });
+        if (fade) { const el = document.getElementById('lx-controls'); if (el) { el.style.opacity = '0'; el.style.transition = 'opacity 3s ease'; requestAnimationFrame(() => { el.style.opacity = '1'; }); } }   // slow, smooth reveal
+      };
       const fadeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) { g.textContent = guideText; g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } };
       const at = api.S.i;
       if (api.revisit) {   // Back → everything at once, gate open, no timers
@@ -288,8 +291,8 @@ App.scenes = (function () {
       const T = (ms, fn) => { this._stage.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms)); };
       T(300,   () => { q('lx-rise4a').classList.add('show'); this.autoCycle(api); });   // reveal graph 1 and begin rotating right away
       T(5300,  () => q('lx-rise4b').classList.add('show'));            // +5s
-      T(10300, () => { showControls(); fadeGuide(); });                // +5s — controls come last; rotation already running
-      T(13300, () => api.openGate(0));                                 // +3s
+      T(12300, () => { showControls(true); fadeGuide(); });            // +7s — controls come last, fading in slowly over ~3s
+      T(16800, () => api.openGate(0));                                 // Next only after the controls have fully faded in
     },
     leave() { clearD(); (this._stage || []).forEach(clearTimeout); if (this._guideTyper) this._guideTyper.cancel(); },
     // die → a fresh true value + distribution, manual
