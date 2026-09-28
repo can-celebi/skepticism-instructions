@@ -21,7 +21,7 @@ App.content = {
     },
     // 2 — two-panel
     {
-      id: 'two-panel', scene: 'twoPanel', title: 'overview', okDelayMs: 4000,
+      id: 'two-panel', scene: 'twoPanel', title: 'overview', okDelayMs: 6000,
       steps: [
         { text: [
           'In this game, the seller is randomly assigned a product whose true value lies between 1 and 5.',
@@ -74,9 +74,9 @@ App.content = {
       steps: [
         { text: [
           "After you <span class=\"lx-red\">bid</span>, a <span class=\"lx-blue\">sales price</span> is picked around the product's true value.",
-          '<span class="lx-gap"></span>Your <span class="lx-red">bid</span> is the maximum <span class="lx-blue">price</span> you are willing to pay:',
-          'if the <span class="lx-blue">price</span> is at or below your <span class="lx-red">bid</span>, you buy the product automatically.',
-          'If it is above, you don\'t. <button class="lx-inline-info" data-info="priceDemo" aria-label="more info">i</button> <span class="lx-inline-hint">please click the info button</span>',
+          "<span class=\"lx-explore-wrap\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoA\">explore</button> to see how the price is drawn.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoA\" aria-label=\"more info\" hidden>i</button>",
+          '<span class="lx-gap"></span>Your <span class="lx-red">bid</span> is the maximum <span class="lx-blue">price</span> you are willing to pay: if the <span class="lx-blue">price</span> is at or below your <span class="lx-red">bid</span>, you buy the product automatically. If it is above, you don\'t.',
+          "<span class=\"lx-explore-wrap\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoB\">explore</button> to see when a trade happens.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoB\" aria-label=\"more info\" hidden>i</button>",
         ] },
       ],
     },
@@ -104,7 +104,7 @@ App.content = {
       exCase: { tv: 2, bid: 4, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value sometimes means no trade, and rightly so, since trading here would have left you as the buyer worse off.', finalLines: ['You paid 3 for a product worth only 2.', 'Bidding above the true value risks overpaying.'] },
       steps: [{ text: ["The product's value is 2.", 'Your bid is <span class="lx-red" id="lx-exbidnum">4</span>.', 'The sales price ends up at <span class="lx-blue">3</span>.'] }] },
     { id: 'ex-bid-2', scene: 'exBid', title: 'underbidding', manualGate: true,
-      exCase: { tv: 4, bid: 2, price: 3, gateOnTrueValue: true, finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },
+      exCase: { tv: 4, bid: 2, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value, you never overpay and never miss a deal.', finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },
       steps: [{ text: ["The product's value is 4.", 'Your bid is <span class="lx-red" id="lx-exbidnum">2</span>.', 'The sales price ends up at <span class="lx-blue">3</span>.'] }] },
     // ex-bid-3 (optimal bid) — PARKED for now (kept, not deleted): after 2 examples we jump to the takeaway.
     // { id: 'ex-bid-3', scene: 'exBid', title: 'optimal bid', manualGate: true,
@@ -175,7 +175,7 @@ App.content = {
         'If there is no trade, neither you nor the seller earns anything.',
       ],
     },
-    priceDemo: {
+    priceDemo: {   // full box — kept for the archived old-6 (debug-only) slide
       title: 'How the price is drawn',
       priceDemo: true,
       lines: [
@@ -183,6 +183,26 @@ App.content = {
         'That range is the <span class="lx-band-chip"></span> blue dashed area around the black true-value bar in the graph below.',
       ],
       hint: 'Move the slider to change the true value, or press the die to draw a price yourself.',
+    },
+    // slide 6 stage 1: how the price is drawn around the true value (no bid, no trade)
+    priceDemoA: {
+      title: 'How the price is drawn',
+      priceDemo: true, pdVariant: 'A',
+      lines: [
+        'The <span class="lx-blue">price</span> is drawn at random within ±1 star of the true value.',
+        'That range is the <span class="lx-band-chip"></span> blue dashed area around the black true-value bar below.',
+      ],
+      hint: 'Move the true value, or press the die to draw a price yourself.',
+    },
+    // slide 6 stage 2: move the bid and watch the trade flip (true value fixed at 3)
+    priceDemoB: {
+      title: 'When does a trade happen?',
+      priceDemo: true, pdVariant: 'B',
+      lines: [
+        'The true value is fixed here. Move your <span class="lx-red">bid</span> and watch the outcome.',
+        'A trade happens only when your <span class="lx-red">bid</span> is at or above the <span class="lx-blue">price</span>.',
+      ],
+      hint: 'Move the bid, or press the die to draw a new price.',
     },
     reviewSpread: {
       title: 'Reviews in detail',

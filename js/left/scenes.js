@@ -53,7 +53,7 @@ App.scenes = (function () {
   function sliderRaw(id, val, color) { return `<div class="lx-slider-wrap"><input type="range" id="${id}" class="lx-range ${color}" min="0" max="6" step="0.1" value="${val}"><div class="lx-ticks">${TICKS}</div></div>`; }
   const markUsed = (id) => { const e = q(id); if (e) e.classList.add('used'); };
   const TYPE_SLOW = 60;   // accent typing (score/advice/calc/guide): same as the main-text typewriter
-  function bidSlot(bid) { return `<div class="lx-bid-slot" id="lx-bid-slot">${sliderRaw('lx-slider', bid, 'black')}<div class="lx-yourbid">Your bid <b id="lx-bidval">${bid.toFixed(1)}</b></div></div>`; }
+  function bidSlot(bid) { return `<div class="lx-bid-slot" id="lx-bid-slot">${sliderRaw('lx-slider', bid, 'purple')}<div class="lx-yourbid">Your bid <b id="lx-bidval">${bid.toFixed(1)}</b></div></div>`; }
 
   // tiny plain-text typewriter (faster/cancellable) for accent lines like the guess prompt & score
   function typeText(el, text, speed, onDone, scope) {
@@ -101,7 +101,7 @@ App.scenes = (function () {
       `<div class="lx-score" id="lx-score" hidden></div>` +
       `<div class="lx-btn-slot" id="lx-btnslot"><button id="lx-bid-btn" class="lx-btn ghost">Place your bid</button></div>` +
       `</div>`;
-    q('lx-gslot').querySelector('.lx-line').classList.add('bid-black');   // slide 5: bid bar black too
+    q('lx-gslot').querySelector('.lx-line').classList.add('bid-purple');   // slide 5: bid bar purple (ties the bid to the purple guess theme)
     lx.bars(q('lx-shownbars'), shownVals, {});
     setStats('lx-stats5', shownVals);   // min / avg / max of the displayed reviews, below the bars
     const r = q('lx-rise5'), bidBtn = q('lx-bid-btn'), promptText = "Can you guess the product's true value?";
@@ -196,7 +196,13 @@ App.scenes = (function () {
 
   // -------------------------------------------------- Slide 2: two-panel (static labels, swiping image + reviews)
   const twoPanel = {
-    enter(api) { api.setControls({}); api.carousel(() => this.rotate(api), 3000); },
+    enter(api) {
+      api.setControls({});
+      const start = () => api.carousel(() => this.rotate(api), 3000);   // carousel fires immediately then every 3s
+      if (api.revisit) { start(); return; }
+      const at = api.S.i;   // first visit: hold ~4s so the text above is read, then ease the panel in (see .lx-window fade)
+      this._delay = setTimeout(() => { if (api.S.i === at) start(); }, 4000);
+    },
     rotate(api) {
       const S = api.S; draw(S, false); const k = 3 + Math.floor(Math.random() * 3);
       if (!q('lx-img-host')) {
@@ -452,12 +458,14 @@ App.scenes = (function () {
     enter(api) {
       api.stage.innerHTML = '';                          // no stage graphic on this slide
       this._api = api; this._shown = false;
-      if (api.revisit) {
+      if (api.revisit) {   // Back → hide the explore prompts, show their re-open ⓘ, and show part C at once
         document.querySelectorAll('#lx-main .lx-inline-hint').forEach((h) => { h.style.display = 'none'; });
+        document.querySelectorAll('#lx-main .lx-explore-wrap').forEach((w) => { w.style.display = 'none'; });
+        document.querySelectorAll('#lx-main .lx-reopen').forEach((r) => { r.hidden = false; });
         this.revealC(true);
       }
     },
-    onInfoClosed() { this.revealC(false); },              // part C appears after the price info box is opened + closed
+    onInfoClosed(key) { if (key === 'priceDemoB' || key === 'priceDemo') this.revealC(false); },   // part C after the trade box (new slide-6 'priceDemoB', or old-6's single 'priceDemo'); the stage-1 'priceDemoA' box does not gate
     revealC(instant) {
       if (this._shown) return; this._shown = true;
       const api = this._api;
@@ -488,7 +496,7 @@ App.scenes = (function () {
       } else { startEarn(); }   // new version → straight to the earnings
       okBtn.addEventListener('click', () => {
         okBtn.style.display = 'none';
-        this._t2 = App.typewriter.run(ntEl, noTrade, () => api.openGate(0), { speed: TYPE_SLOW, scope: 'main' });
+        this._t2 = App.typewriter.run(ntEl, noTrade, () => api.openGate(4000), { speed: TYPE_SLOW, scope: 'main' });   // Next unlocks ~4s after the last OK
       });
     },
     leave() { if (this._th) this._th.cancel(); if (this._t1) this._t1.cancel(); if (this._t2) this._t2.cancel(); },
@@ -510,11 +518,14 @@ App.scenes = (function () {
       const isBuyer = (App.config.TREATMENT || 'BUYER') === 'BUYER';   // show only the participant's own payoff ("Your payoff")
       const payoffs = (bid) => { const trade = bid >= price; return { trade, buyer: trade ? round1(tv - price) : 0, seller: trade ? round1(bid - (tv - 0.3)) : 0 }; };
       const pfHtml = (bid, cls) => { const p = payoffs(bid), v = isBuyer ? p.buyer : p.seller; return `<div class="lx-pf-cell lx-pf-single ${cls}" id="lx-expfa">Your payoff <b class="${v < 0 ? 'lx-neg' : ''}">${v.toFixed(1)}</b></div>`; };
-      const calcStmts = (bid) => { const p = payoffs(bid); if (!p.trade) return ['No trade, so you earn <b>0</b>.'];
-        return isBuyer
-          ? [`You: value − price = ${tv.toFixed(1)} − ${price.toFixed(1)} = <b>${p.buyer.toFixed(1)}</b>`]
-          : [`You: bid − (value − 0.3) = ${bid.toFixed(1)} − ${round1(tv - 0.3).toFixed(1)} = <b>${p.seller.toFixed(1)}</b>`,
-             `<span class="lx-cost-note">production cost = value − 0.3</span>`]; };
+      const calcStmts = (bid) => { const p = payoffs(bid); if (!p.trade) return ['No trade, so both earn <b>0</b>.'];
+        const you = isBuyer
+          ? `You: value − price = ${tv.toFixed(1)} − ${price.toFixed(1)} = <b>${p.buyer.toFixed(1)}</b>`
+          : `You: bid − (value − 0.3) = ${bid.toFixed(1)} − ${round1(tv - 0.3).toFixed(1)} = <b>${p.seller.toFixed(1)}</b>`;
+        const other = isBuyer
+          ? `Seller: bid − (value − 0.3) = ${bid.toFixed(1)} − ${round1(tv - 0.3).toFixed(1)} = <b>${p.seller.toFixed(1)}</b>`
+          : `Buyer: value − price = ${tv.toFixed(1)} − ${price.toFixed(1)} = <b>${p.buyer.toFixed(1)}</b>`;
+        return [you, other, `<span class="lx-cost-note">production cost = value − 0.3</span>`]; };
       const advice = c.finalLines.slice(1).concat(c.strategy ? [c.strategy] : []);
       api.stage.innerHTML =
         `<div class="lx-graphic-slot">${lx.line()}</div>` +
@@ -566,9 +577,10 @@ App.scenes = (function () {
       lx.setLine(line, { tv: null, bid: null, price: null, band: false });
       T(600,  () => lx.setLine(line, { tv: tv, bid: null, price: null, band: false }));
       T(1900, () => lx.setLine(line, { tv: tv, bid: c.bid, price: null, band: false }));
-      T(3200, () => lx.setLine(line, { tv: tv, bid: c.bid, price: price, band: true }));
-      T(4400, () => { q('lx-expf').innerHTML = pfHtml(c.bid, 'lx-stg'); });
-      T(4600, () => { const e = q('lx-expfa'); if (e) e.classList.add('show'); });
+      T(3200, () => lx.setLine(line, { tv: tv, bid: c.bid, price: null, band: true }));   // the ±1 band (rectangle) appears first
+      T(4200, () => { lx.setLine(line, { tv: tv, bid: c.bid, price: price, band: true }); const pm = line.querySelector('.lx-mark.lx-price'); if (pm) { pm.classList.remove('lx-price-appear'); void pm.offsetWidth; pm.classList.add('lx-price-appear'); } });   // then the price rises ~1s later
+      T(4600, () => { q('lx-expf').innerHTML = pfHtml(c.bid, 'lx-stg'); });
+      T(4800, () => { const e = q('lx-expfa'); if (e) e.classList.add('show'); });
       T(6800, () => {   // text is instant (scope 'main'); the staged T() timings are kept
         if (App.typewriter) {
           this._calc = App.typewriter.run(q('lx-excalcbox'), calcStmts(c.bid), () => {

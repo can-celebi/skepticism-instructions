@@ -108,7 +108,8 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-swipe-host { position: relative; overflow: hidden; }
 .lx-swipe-track { position: relative; will-change: transform; }
 .lx-imgcard { display: flex; flex-direction: column; align-items: center; gap: 6px; }   /* block-level so swipe items stack, never sit side by side */
-.lx-window { max-width: 520px; margin: 0 auto; }
+.lx-window { max-width: 520px; margin: 0 auto; animation: lx-window-in 1s ease both; }   /* slide 2: ease the panel in rather than a sudden appearance */
+@keyframes lx-window-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .lx-two { display: flex; gap: 18px; align-items: flex-start; justify-content: center; }
 .lx-two-l, .lx-two-r { flex: 1 1 0; min-width: 0; }
 .lx-two-l { display: flex; flex-direction: column; align-items: center; }   /* image + label centered in the left half */
@@ -169,6 +170,8 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-band { position: absolute; top: 6px; bottom: 6px; background: rgba(23,105,192,0.10); border: 1px dashed #9bbfe0; border-radius: 4px; }
 .lx-line.bid-black .lx-bidm { background: #000; }
 .lx-line.bid-black .lx-bidm .lx-tag-num, .lx-line.bid-black .lx-bidm .lx-tag-lab { color: #000; }
+.lx-line.bid-purple .lx-bidm { background: var(--purple); }
+.lx-line.bid-purple .lx-bidm .lx-tag-num, .lx-line.bid-purple .lx-bidm .lx-tag-lab { color: var(--purple); }
 .lx-mark { position: absolute; top: 4px; width: 3px; height: 32px; transform: translateX(-1.5px); border-radius: 2px; }
 .lx-mark.lx-tv { background: #000; }
 .lx-mark.lx-bidm { background: var(--red); }
@@ -194,6 +197,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-pd-auto input { accent-color: var(--purple); }
 .lx-info-panel .lx-slider-wrap.lx-sw-full { margin-top: 12px; }
 .lx-info-panel .lx-trade-out { margin-top: 10px; font-size: 14px; }
+.lx-info-panel .lx-pd-trade-big { font-size: 20px; font-weight: 300; min-height: 1.5em; }   /* stage-2 box: make the trade outcome obvious */
 .lx-pd-flag { position: absolute; top: 100%; margin-top: 2px; transform: translateX(-50%); font-size: 15px; line-height: 1; }
 .lx-pd-gap { height: 40px; }   /* breathing room before the price-description text */
 /* inline dashed-blue chip referencing the ±1 band in the graph */
@@ -226,6 +230,8 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-slider-wrap input.red::-moz-range-thumb { background: var(--red); }
 .lx-slider-wrap input.black::-webkit-slider-thumb { background: #000; }
 .lx-slider-wrap input.black::-moz-range-thumb { background: #000; }
+.lx-slider-wrap input.purple::-webkit-slider-thumb { background: var(--purple); }
+.lx-slider-wrap input.purple::-moz-range-thumb { background: var(--purple); }
 
 
 /* visual-aid warning */
@@ -263,16 +269,17 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-lead { text-align: center; color: #b3a6d0; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 100; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; line-height: 1.6; margin: 6px auto 26px; max-width: 460px; min-height: 18px; }
 .lx-lead-sub { text-align: center; color: #1fa85c; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 100; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; line-height: 1.6; margin: 35px auto 35px; max-width: 460px; }   /* energetic-green caption; extra breathing room before/after */
 /* closeness feedback, revealed well below the graph with plenty of air */
-.lx-score { text-align: center; margin: 46px 0 6px; }
+.lx-score { text-align: center; margin: 16px 0 34px; }   /* closer to the graph above, clear gap to the button below */
 .lx-score-main { font-size: 30px; font-weight: 300; letter-spacing: 1px; }
 .lx-score-sub { font-size: 13px; font-weight: 400; color: #8a8a8a; letter-spacing: .5px; margin-top: 16px; }
 .lx-score-goal { font-size: 11px; font-weight: 400; color: #b3adc4; letter-spacing: .8px; text-transform: uppercase; margin-top: 24px; }
-.lx-score-only { font-size: 30px; font-weight: 300; letter-spacing: 1px; color: #333; text-align: center; }   /* slide 5: just the distance, large */
+.lx-score-only { font-size: 30px; font-weight: 300; letter-spacing: 1px; color: #8a8a8a; text-align: center; }   /* slide 5: just the distance, large + gray */
 .lx-fadein { animation: lx-appear .5s ease; }
 .lx-bid-slot { transition: opacity .2s ease; }
 .lx-bid-slot.gone { visibility: hidden; }
-.lx-yourbid { text-align: center; margin-top: 8px; font-size: 16px; }
-.lx-yourbid b { font-size: 34px; font-weight: 900; }
+/* slide 5: "Your bid 3.0" echoes the lavender guess-prompt, value in purple — ties the bid to the guess theme */
+.lx-yourbid { text-align: center; margin-top: 8px; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 100; font-size: 13px; letter-spacing: 4px; text-transform: uppercase; color: #b3a6d0; }
+.lx-yourbid b { display: block; margin-top: 4px; font-size: 30px; font-weight: 200; letter-spacing: 0; color: var(--purple); }
 .lx-btn-slot { min-height: 54px; display: flex; align-items: center; justify-content: center; margin-top: 6px; }
 .lx-inline-btn { text-align: center; margin: 10px 0; }
 

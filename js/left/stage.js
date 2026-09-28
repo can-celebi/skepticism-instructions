@@ -108,23 +108,24 @@ App.stage = (function () {
     const info = $('lx-info-btn'); info.hidden = !sl.info; info.onclick = sl.info ? () => showInfo(sl.info) : null;
     if (debugSel) debugSel.value = String(S.i);   // keep the debug jumper in sync
   }
-  let distChart = null, pdTimer = null;
-  function closeInfo() { const wasOpen = !$('lx-info-panel').hidden; $('lx-info-panel').hidden = true; if (distChart) { distChart.destroy(); distChart = null; } if (pdTimer) { clearInterval(pdTimer); pdTimer = null; } document.removeEventListener('click', outsideInfo, true); if (wasOpen && active && active.onInfoClosed) active.onInfoClosed(); }
+  let distChart = null, pdTimer = null, lastInfoKey = null;
+  function closeInfo() { const wasOpen = !$('lx-info-panel').hidden; $('lx-info-panel').hidden = true; if (distChart) { distChart.destroy(); distChart = null; } if (pdTimer) { clearInterval(pdTimer); pdTimer = null; } document.removeEventListener('click', outsideInfo, true); if (wasOpen && active && active.onInfoClosed) active.onInfoClosed(lastInfoKey); }
   function outsideInfo(e) { const p = $('lx-info-panel'); if (p.hidden) return; if (p.contains(e.target) || (e.target.closest && e.target.closest('.lx-inline-info'))) return; closeInfo(); }
   function showInfo(key) {
     const info = App.content.INFO[key]; if (!info) return;
+    lastInfoKey = key;
     $('lx-info-title').textContent = info.title;
     let html;
-    if (info.priceDemo) {   // description first, then the interactive trade demo (graph → tv slider → bid slider → die → trade result)
-      html = info.lines.map((l) => `<p>${l}</p>`).join('') +
-        `<div class="lx-pd-gap"></div>` +
-        `<div class="lx-trade-out" id="lx-pd-trade"></div>` +   // trade result above the graph so it stays visible in the scrollable panel
-        App.lx.line() +
-        `<div class="lx-slider-wrap lx-sw-tv"><input type="range" id="lx-pd-tvslider" class="lx-range black" min="1" max="5" step="0.1" value="3"></div>` +
-        `<div class="lx-dist-lab">True value <b id="lx-pd-tvval">3.0</b></div>` +
-        `<div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-pd-bidslider" class="lx-range red" min="0" max="6" step="0.1" value="3.5"></div>` +
-        `<div class="lx-dist-lab">Your <span class="lx-red">bid</span> <b id="lx-pd-bidval">3.5</b></div>` +
-        `<div class="lx-price-row"><button id="lx-pd-die" class="lx-bluedie2" title="draw a price"></button><span class="lx-price-txt">Price <b class="lx-blue" id="lx-pd-pricenum" style="opacity:0">—</b></span><label class="lx-pd-auto"><input type="checkbox" id="lx-pd-auto" checked> auto</label></div>`;
+    if (info.priceDemo) {   // interactive demo. pdVariant: 'A' = true value + price only; 'B' = bid only (tv fixed 3), trade emphasized; else full (old-6)
+      const v = info.pdVariant || 'full';
+      const tvBlock = `<div class="lx-slider-wrap lx-sw-tv"><input type="range" id="lx-pd-tvslider" class="lx-range black" min="1" max="5" step="0.1" value="3"></div><div class="lx-dist-lab">True value <b id="lx-pd-tvval">3.0</b></div>`;
+      const bidBlock = `<div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-pd-bidslider" class="lx-range red" min="0" max="6" step="0.1" value="3.5"></div><div class="lx-dist-lab">Your <span class="lx-red">bid</span> <b id="lx-pd-bidval">3.5</b></div>`;
+      const priceRow = `<div class="lx-price-row"><button id="lx-pd-die" class="lx-bluedie2" title="draw a price"></button><span class="lx-price-txt">Price <b class="lx-blue" id="lx-pd-pricenum" style="opacity:0">—</b></span><label class="lx-pd-auto"><input type="checkbox" id="lx-pd-auto" checked> auto</label></div>`;
+      const tradeOut = `<div class="lx-trade-out lx-pd-trade-big" id="lx-pd-trade"></div>`;   // trade result above the graph so it stays visible
+      html = info.lines.map((l) => `<p>${l}</p>`).join('') + `<div class="lx-pd-gap"></div>`;
+      if (v === 'A')      html += App.lx.line() + tvBlock + priceRow;                        // stage 1: how the price is drawn around the true value
+      else if (v === 'B') html += tradeOut + App.lx.line() + bidBlock + priceRow;            // stage 2: move the bid, watch the trade flip
+      else                html += tradeOut + App.lx.line() + tvBlock + bidBlock + priceRow;  // full (old-6)
     } else {
       html = info.lines.map((l) => `<p>${l}</p>`).join('');
       if (info.dist) html += `<div class="lx-dist"><canvas id="lx-dist-canvas"></canvas></div>` +
@@ -162,9 +163,11 @@ App.stage = (function () {
     const numEl = $('lx-pd-pricenum'), die = $('lx-pd-die'), auto = $('lx-pd-auto'), tradeEl = $('lx-pd-trade');
     const tvsl = $('lx-pd-tvslider'), tvval = $('lx-pd-tvval'), bidsl = $('lx-pd-bidslider'), bidval = $('lx-pd-bidval');
     const st = { tv: 3.0, bid: 3.5, price: null };
+    const hasBid = !!bidsl;   // variant A has no bid slider (and no trade); B/full do
     const r1 = (x) => Math.round(x * 10) / 10, pct = (v) => (Math.max(0, Math.min(6, v)) / 6) * 100;
     const paint = () => {
-      App.lx.setLine(root, { tv: st.tv, bid: st.bid, price: st.price, band: true, tvTag: false, bidTag: false, priceTag: false });
+      App.lx.setLine(root, { tv: st.tv, bid: hasBid ? st.bid : null, price: st.price, band: true, tvTag: false, bidTag: false, priceTag: false });
+      if (!tradeEl || !hasBid) return;   // variant A: price only, no trade display
       if (st.price == null) { tradeEl.innerHTML = ''; flag.hidden = true; return; }
       const trade = st.bid >= st.price;
       flag.hidden = false; flag.style.left = pct(st.price) + '%';
@@ -189,11 +192,11 @@ App.stage = (function () {
     };
     const startAuto = () => { if (pdTimer) clearInterval(pdTimer); draw(); pdTimer = setInterval(draw, 1000); };
     paint();
-    tvsl.addEventListener('input', () => { st.tv = r1(+tvsl.value); tvval.textContent = st.tv.toFixed(1); paint(); });   // moving tv keeps the current price
-    bidsl.addEventListener('input', () => { st.bid = r1(+bidsl.value); bidval.textContent = st.bid.toFixed(1); paint(); });
-    die.addEventListener('click', () => { if (auto) auto.checked = false; if (pdTimer) { clearInterval(pdTimer); pdTimer = null; } draw(); });
-    auto.addEventListener('change', () => { if (auto.checked) startAuto(); else if (pdTimer) { clearInterval(pdTimer); pdTimer = null; } });
-    if (auto.checked) startAuto();
+    if (tvsl) tvsl.addEventListener('input', () => { st.tv = r1(+tvsl.value); tvval.textContent = st.tv.toFixed(1); paint(); });   // moving tv keeps the current price
+    if (bidsl) bidsl.addEventListener('input', () => { st.bid = r1(+bidsl.value); bidval.textContent = st.bid.toFixed(1); paint(); });
+    if (die) die.addEventListener('click', () => { if (auto) auto.checked = false; if (pdTimer) { clearInterval(pdTimer); pdTimer = null; } draw(); });
+    if (auto) auto.addEventListener('change', () => { if (auto.checked) startAuto(); else if (pdTimer) { clearInterval(pdTimer); pdTimer = null; } });
+    if (auto && auto.checked) startAuto();
   }
 
   function killCharts() { $('lx-stage').querySelectorAll('canvas').forEach((c) => { const ch = window.Chart && Chart.getChart(c); if (ch) ch.destroy(); }); }
@@ -268,8 +271,8 @@ App.stage = (function () {
       if (btn) {
         e.stopPropagation(); btn.classList.add('lx-info-seen');
         $('lx-main').querySelectorAll('.lx-inline-hint').forEach((h) => { h.style.display = 'none'; });
-        const ew = $('lx-explore-wrap'); if (ew) ew.style.display = 'none';   // explore used → hide the prompt, reveal the re-open ⓘ (slide 3; no-op elsewhere)
-        const ro = $('lx-reopen'); if (ro) ro.hidden = false;
+        const wrap = btn.closest('.lx-explore-wrap');   // explore used → hide its prompt, reveal its own re-open ⓘ (supports several per slide)
+        if (wrap) { wrap.style.display = 'none'; const ro = wrap.nextElementSibling; if (ro && ro.classList.contains('lx-reopen')) ro.hidden = false; }
         showInfo(btn.dataset.info); return;
       }
       if (typeHandle) typeHandle.skip();
