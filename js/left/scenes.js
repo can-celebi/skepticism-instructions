@@ -100,7 +100,8 @@ App.scenes = (function () {
       bidSlot(S.bid) +   // slider + "Your bid" sit BELOW the graph, hidden until the bid button is revealed
       `<div class="lx-score" id="lx-score" hidden></div>` +
       `<div class="lx-btn-slot" id="lx-btnslot"><button id="lx-bid-btn" class="lx-btn ghost">Place your bid</button></div>` +
-      `</div>`;
+      `</div>` +
+      `<button id="lx-bid-ok" class="lx-ok lx-bid-ok" hidden>OK</button>`;   // advances the reveal stages (like the OK elsewhere)
     q('lx-gslot').querySelector('.lx-line').classList.add('bid-purple');   // slide 5: bid bar purple (ties the bid to the purple guess theme)
     lx.bars(q('lx-shownbars'), shownVals, {});
     setStats('lx-stats5', shownVals);   // min / avg / max of the displayed reviews, below the bars
@@ -115,16 +116,25 @@ App.scenes = (function () {
       api.openGate(0);
     } else {
       bidBtn.style.opacity = '0';                        // hold the button back until the question is asked
-      { const bs = q('lx-bid-slot'); if (bs) bs.style.display = 'none'; }   // hide the slider + "Your bid" until the bid button is revealed
+      const okBtn5 = q('lx-bid-ok');
+      const gslotEl = q('lx-gslot'), bidSlotEl = q('lx-bid-slot'), btnslotEl = q('lx-btnslot');
+      [gslotEl, bidSlotEl, btnslotEl].forEach((el) => { if (el) el.style.display = 'none'; });   // graph + slider + button hidden until the final OK
       const at = api.S.i;
-      const T = (ms, fn) => setTimeout(() => { if (api.S.i === at) fn(); }, ms);
       const fadeInto = (el, text) => { if (!el) return; el.textContent = text; el.style.opacity = '1'; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
-      // well-spaced: lead + review graphs → green sub-line → guess prompt, slider + "Your bid", and the bid button all together
-      T(5000,  () => { fadeInto(q('lx-lead5'), leadText); if (r) r.classList.add('show'); });   // lead + displayed-review graphs together
-      T(14000, () => { const sub = q('lx-lead5sub'); fadeInto(sub, sub ? sub.textContent : ''); });   // green sub-line
-      T(22000, () => {
-        const bs = q('lx-bid-slot'); if (bs) { bs.style.display = ''; bs.classList.add('lx-fade'); }   // reveal the bidding controls with the prompt
-        prompt = typeText(q('lx-guess-prompt'), promptText, TYPE_SLOW, () => { bidBtn.style.transition = 'opacity .5s ease'; bidBtn.style.opacity = '1'; });
+      const fadeShow = (el) => { if (el) { el.style.display = ''; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); } };
+      const showOk5 = () => { if (okBtn5) { okBtn5.hidden = false; okBtn5.classList.remove('show'); void okBtn5.offsetWidth; okBtn5.classList.add('show'); } };
+      // OK-gated: 1) lead + review graphs  →OK→  2) green sub-line  →OK→  3) guess prompt + slider + bid button
+      fadeInto(q('lx-lead5'), leadText);
+      if (r) r.classList.add('show');
+      setTimeout(() => { if (api.S.i === at) showOk5(); }, 700);
+      let stage = 1;
+      okBtn5.addEventListener('click', () => {
+        if (stage === 1) { stage = 2; const sub = q('lx-lead5sub'); fadeInto(sub, sub ? sub.textContent : ''); showOk5(); }
+        else if (stage === 2) {
+          stage = 3; okBtn5.hidden = true;
+          fadeShow(gslotEl); fadeShow(bidSlotEl); fadeShow(btnslotEl);
+          prompt = typeText(q('lx-guess-prompt'), promptText, TYPE_SLOW, () => { bidBtn.style.transition = 'opacity .5s ease'; bidBtn.style.opacity = '1'; });
+        }
       });
     }
     const sl = q('lx-slider'), val = q('lx-bidval');
