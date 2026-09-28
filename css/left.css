@@ -281,6 +281,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-bid-slot.gone { visibility: hidden; }
 .lx-bid-slot.locked { opacity: .4; pointer-events: none; margin-bottom: 30px; }   /* after placing: slider + "Your bid" stay, grayed + fixed, with room before the graph */
 .lx-bid-ok { display: block; margin: 36px 0 0 auto; }   /* scene OK: right-aligned (centered on mobile below) */
+.lx-partc .lx-ok { display: block; margin: 16px 0 0 auto; }   /* slide-6 part-C OK on the right */
 .lx-ok.lx-ok-green { color: #1a8f5a; border-color: #9ed9bd; }   /* only the OK that follows the green note is green */
 .lx-ok.lx-ok-green:hover { border-color: #1a8f5a; background: #1fa85c0f; }
 /* slide 5: "Your bid 3.0" echoes the lavender guess-prompt, value in purple — ties the bid to the guess theme */
@@ -539,6 +540,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
   .lx-ok, .lx-btn, .lx-try-btn { font-size: 14px; padding: 12px 26px; min-height: 44px; }
   .lx-below { text-align: center; }   /* center the OK on phones (right-aligned only on wider screens) */
   .lx-bid-ok { margin: 28px auto 0; }   /* center slide-5 scene OK on phones */
+  .lx-partc .lx-ok { margin: 16px auto 0; }   /* center slide-6 part-C OK on phones */
   .lx-two { gap: 10px; }                 /* stay side-by-side on mobile */
   .lx-two .lx-shoe { width: 120px; height: 86px; }
   .lx-two .stars { font-size: 15px; }
