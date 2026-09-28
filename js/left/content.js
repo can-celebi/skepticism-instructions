@@ -79,7 +79,7 @@ App.content = {
           "<span class=\"lx-s6-stage2\" id=\"lx-s6-stage2\" style=\"display:none\">Your <span class=\"lx-red\">bid</span> is the maximum <span class=\"lx-blue\">price</span> you are willing to pay:" +
             "<span class=\"lx-conds\">" +
               "<span class=\"lx-cond yes\"><span class=\"lx-cond-txt\">If the <span class=\"lx-blue\">price</span> is at or below your <span class=\"lx-red\">bid</span>, you buy the product automatically.</span><span class=\"lx-cond-tag\">trade happens</span></span>" +
-              "<span class=\"lx-cond no\"><span class=\"lx-cond-txt\">If it is above, you don't.</span><span class=\"lx-cond-tag\">no trade</span></span>" +
+              "<span class=\"lx-cond no\"><span class=\"lx-cond-txt\">If the <span class=\"lx-blue\">price</span> is above your <span class=\"lx-red\">bid</span>, you don't buy the product.</span><span class=\"lx-cond-tag\">no trade</span></span>" +
             "</span>" +
             "<span class=\"lx-explore-wrap\" id=\"lx-expwrap-b\" style=\"display:none\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoB\">explore</button> to see when a trade happens.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoB\" aria-label=\"more info\" hidden>i</button>" +
           "</span>",
