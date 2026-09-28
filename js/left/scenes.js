@@ -490,8 +490,8 @@ App.scenes = (function () {
       this._s6t = [];
       const at = api.S.i, T = (ms, fn) => this._s6t.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms));
       const reveal = (id) => { const e = document.getElementById(id); if (e) { e.style.display = 'inline-block'; e.classList.add('lx-fade'); } };
-      this._revealExpB = () => T(5000, () => reveal('lx-expwrap-b'));   // explore-2 prompt, 5s after the bid rule appears
-      T(3000, () => reveal('lx-expwrap-a'));                            // explore-1 prompt, 3s after the sentence above
+      this._revealExpB = () => T(4000, () => reveal('lx-expwrap-b'));   // explore-2 prompt, 4s after the bid rule appears
+      T(2000, () => reveal('lx-expwrap-a'));                            // explore-1 prompt, 2s after the sentence above
     },
     onInfoClosed(key) {
       if (key === 'priceDemoA') { if (this._showStage2) this._showStage2(); if (this._revealExpB) this._revealExpB(); return; }   // stage-1 closed → bid rule + (delayed) stage-2 explore
