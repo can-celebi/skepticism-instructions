@@ -58,7 +58,7 @@ App.stage = (function () {
     }
     if (cfg.hold || cfg.aid) {
       h += `<div class="lx-ticks-row">`;
-      if (cfg.hold) h += `<label class="lx-tick"><input type="checkbox" id="lx-hold"> hold the true value constant</label>`;
+      if (cfg.hold) h += `<label class="lx-tick"><input type="checkbox" id="lx-hold" ${cfg.holdChecked === false ? '' : 'checked'}> hold the true value constant</label>`;
       if (cfg.aid) h += `<label class="lx-tick"><input type="checkbox" id="lx-aid"> visual aid</label>`;
       h += `</div>`;
     }
@@ -66,7 +66,7 @@ App.stage = (function () {
     el.innerHTML = h; el.hidden = !h;
     if ($('lx-die')) $('lx-die').addEventListener('click', onDie);
     if ($('lx-auto')) $('lx-auto').addEventListener('change', (e) => { if (active && active.setAuto) active.setAuto(e.target.checked, api); });
-    if ($('lx-hold')) $('lx-hold').addEventListener('change', (e) => { S.hold = e.target.checked; });
+    if ($('lx-hold')) { S.hold = $('lx-hold').checked; $('lx-hold').addEventListener('change', (e) => { S.hold = e.target.checked; }); }   // ticked by default → hold the true value constant
     if ($('lx-aid')) $('lx-aid').addEventListener('change', (e) => { S.aid = e.target.checked; if (e.target.checked) showWarn('these colors are a teaching aid, not shown in the actual game'); if (active && active.onAid) active.onAid(S.aid, api); });
   }
   function onDie() {
