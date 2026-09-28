@@ -280,6 +280,7 @@ App.scenes = (function () {
       this.cAll.addEventListener('mouseenter', () => { const c = q('lx-cue4'); if (c) { c.hidden = false; c.classList.remove('hide'); } });
       this.cAll.addEventListener('mouseleave', () => { const c = q('lx-cue4'), auto = q('lx-auto') && q('lx-auto').checked; if (c && auto) c.hidden = true; });
       this.newScenario(api);   // paint an initial sample (hidden until each block reveals)
+      this._auto = true;       // rotation runs from graph 1 on; the auto checkbox (shown later) just toggles this
       const guideText = 'Press the die for a new true value, or untick “auto” to go through them yourself.';
       const showControls = () => api.setControls({ die: true, auto: true, autoChecked: true, hold: true, aid: true, guide: ' ' });
       const fadeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) { g.textContent = guideText; g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } };
@@ -288,28 +289,27 @@ App.scenes = (function () {
         q('lx-rise4a').style.transition = 'none'; q('lx-rise4b').style.transition = 'none';
         q('lx-rise4a').classList.add('show'); q('lx-rise4b').classList.add('show');
         showControls(); const g = document.querySelector('#lx-controls .lx-guide'); if (g) g.textContent = guideText;
-        api.openGate(0); return;
+        this.autoCycle(api); api.openGate(0); return;
       }
-      // first visit: graph 1 → (+3s) graph 2 → (+3s) controls + auto-disclosure → (+1s) Next
+      // first visit: graph 1 (rotation starts) → (+3s) graph 2 → (+3s) controls appear → (+1s) Next
       this._stage = [];
       const T = (ms, fn) => { this._stage.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms)); };
-      T(300,  () => q('lx-rise4a').classList.add('show'));
+      T(300,  () => { q('lx-rise4a').classList.add('show'); this.autoCycle(api); });   // reveal graph 1 and begin rotating right away
       T(3300, () => q('lx-rise4b').classList.add('show'));
-      T(6300, () => { showControls(); this.autoCycle(api); fadeGuide(); });
+      T(6300, () => { showControls(); fadeGuide(); });   // controls come last; rotation already running
       T(7300, () => api.openGate(0));
     },
     leave() { clearD(); (this._stage || []).forEach(clearTimeout); if (this._guideTyper) this._guideTyper.cancel(); },
     // die → a fresh true value + distribution, manual
-    step(api) { clearD(); this.newScenario(api); },
-    setAuto(on, api) { if (on) this.autoCycle(api); else { clearD(); this.paint(api); } },
+    step(api) { this._auto = false; clearD(); this.newScenario(api); },   // die click = manual → stop rotating
+    setAuto(on, api) { this._auto = on; if (on) this.autoCycle(api); else { clearD(); this.paint(api); } },
     onAid(on, api) { const l = q('lx-aidleg'); if (l) l.hidden = !on; this.paint(api); },
     newScenario(api) { const S = api.S; clearD(); draw(S, S.hold); S.disclosed = new Set(); const c = q('lx-cue4'); if (c) c.classList.remove('hide'); this.paint(api); },
     autoCycle(api) {
       const S = api.S; clearD(); draw(S, S.hold); S.disclosed = new Set(); api.spinDie(); this.paint(api);
       const order = shuffle(S.reviews.map((_, i) => i));      // reveal ALL, in random order
       order.forEach((idx, k) => dTimers.push(setTimeout(() => { S.disclosed.add(idx); this.paint(api); }, 700 * (k + 1))));
-      const a = q('lx-auto');
-      if (a && a.checked) dTimers.push(setTimeout(() => this.autoCycle(api), 700 * (order.length + 1) + 1800));
+      if (this._auto) dTimers.push(setTimeout(() => this.autoCycle(api), 700 * (order.length + 1) + 1800));   // loop off the scene flag (works before the auto checkbox exists)
     },
     paint(api) {
       const S = api.S; setTvHead(S.tv);
