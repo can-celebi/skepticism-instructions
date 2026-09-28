@@ -286,10 +286,10 @@ App.scenes = (function () {
       // first visit: graph 1 (rotation starts) → (+3s) graph 2 → (+3s) controls appear → (+1s) Next
       this._stage = [];
       const T = (ms, fn) => { this._stage.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms)); };
-      T(300,  () => { q('lx-rise4a').classList.add('show'); this.autoCycle(api); });   // reveal graph 1 and begin rotating right away
-      T(3300, () => q('lx-rise4b').classList.add('show'));
-      T(6300, () => { showControls(); fadeGuide(); });   // controls come last; rotation already running
-      T(7300, () => api.openGate(0));
+      T(300,   () => { q('lx-rise4a').classList.add('show'); this.autoCycle(api); });   // reveal graph 1 and begin rotating right away
+      T(5300,  () => q('lx-rise4b').classList.add('show'));            // +5s
+      T(10300, () => { showControls(); fadeGuide(); });                // +5s — controls come last; rotation already running
+      T(13300, () => api.openGate(0));                                 // +3s
     },
     leave() { clearD(); (this._stage || []).forEach(clearTimeout); if (this._guideTyper) this._guideTyper.cancel(); },
     // die → a fresh true value + distribution, manual
