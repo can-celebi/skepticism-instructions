@@ -458,14 +458,22 @@ App.scenes = (function () {
     enter(api) {
       api.stage.innerHTML = '';                          // no stage graphic on this slide
       this._api = api; this._shown = false;
-      if (api.revisit) {   // Back → hide the explore prompts, show their re-open ⓘ, and show part C at once
+      const stage2 = () => { const s = document.getElementById('lx-s6-stage2'); return s ? (s.closest('p') || s) : null; };
+      this._showStage2 = () => { const p = stage2(); if (p) { p.style.display = ''; p.classList.add('lx-instant-in'); } };
+      if (api.revisit) {   // Back → reveal stage 2, hide the explore prompts, show their re-open ⓘ, show part C at once
+        this._showStage2();
         document.querySelectorAll('#lx-main .lx-inline-hint').forEach((h) => { h.style.display = 'none'; });
         document.querySelectorAll('#lx-main .lx-explore-wrap').forEach((w) => { w.style.display = 'none'; });
         document.querySelectorAll('#lx-main .lx-reopen').forEach((r) => { r.hidden = false; });
         this.revealC(true);
+        return;
       }
+      const p2 = stage2(); if (p2) p2.style.display = 'none';   // first visit: stage 2 (bid rule + explore B) appears only after explore A is closed
     },
-    onInfoClosed(key) { if (key === 'priceDemoB' || key === 'priceDemo') this.revealC(false); },   // part C after the trade box (new slide-6 'priceDemoB', or old-6's single 'priceDemo'); the stage-1 'priceDemoA' box does not gate
+    onInfoClosed(key) {
+      if (key === 'priceDemoA') { if (this._showStage2) this._showStage2(); return; }   // stage-1 box closed → reveal the bid rule + stage-2 explore
+      if (key === 'priceDemoB' || key === 'priceDemo') this.revealC(false);              // trade box closed → part C (old-6 uses 'priceDemo')
+    },
     revealC(instant) {
       if (this._shown) return; this._shown = true;
       const api = this._api;
@@ -724,9 +732,10 @@ App.scenes = (function () {
       const L2 = 'You can use the back button and review the instructions.';
       const L3 = 'When you are ready click the Done button to proceed.';
       if (api.revisit) { q('lx-fn1').textContent = L1; q('lx-fn2').textContent = L2; q('lx-fn3').textContent = L3; api.openGate(0); return; }
+      // no typing, but each line still appears one after another (the settle beat keeps the stagger)
       this._t = typeText(q('lx-fn1'), L1, TYPE_SLOW, () =>
         typeText(q('lx-fn2'), L2, TYPE_SLOW, () =>
-          typeText(q('lx-fn3'), L3, TYPE_SLOW, () => api.openGate(0))));
+          typeText(q('lx-fn3'), L3, TYPE_SLOW, () => api.openGate(0), 'main'), 'main'), 'main');
     },
     leave() { if (this._t) this._t.cancel(); },
   };
