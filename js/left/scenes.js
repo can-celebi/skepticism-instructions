@@ -300,12 +300,13 @@ App.scenes = (function () {
         this.autoCycle(api); api.openGate(0); return;
       }
       // first visit: OK-gated — step 0 reveals graph 1 (+rotation), step 1 graph 2, step 2 the controls
+      { const b = q('lx-rise4b'); if (b) b.style.display = 'none'; }   // graph 2 takes no space until its OK, so the first OK sits right under graph 1
     },
     // one reveal per OK (see content steps): 0 graph 1 + rotation · 1 graph 2 · 2 the die/tick controls
     onStep(api, idx) {
       if (api.revisit) return;
       if (idx === 0) { q('lx-rise4a').classList.add('show'); this.autoCycle(api); }
-      else if (idx === 1) { q('lx-rise4b').classList.add('show'); }
+      else if (idx === 1) { const b = q('lx-rise4b'); if (b) { b.style.display = ''; requestAnimationFrame(() => b.classList.add('show')); } }   // give it space, then fade in
       else if (idx === 2) { if (this._showControls) this._showControls(true); if (this._fadeGuide) this._fadeGuide(); }
     },
     onStepsDone(api) { if (!api.revisit) api.openGate(2000); },   // Next after the controls have faded in

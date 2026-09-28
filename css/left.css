@@ -280,7 +280,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-bid-slot { transition: opacity .3s ease; }
 .lx-bid-slot.gone { visibility: hidden; }
 .lx-bid-slot.locked { opacity: .4; pointer-events: none; margin-bottom: 30px; }   /* after placing: slider + "Your bid" stay, grayed + fixed, with room before the graph */
-.lx-bid-ok { display: block; margin: 20px auto 0; }   /* scene OK that advances slide-5 reveal stages */
+.lx-bid-ok { display: block; margin: 36px 0 0 auto; }   /* scene OK: right-aligned, extra space above (centered on mobile below) */
 /* slide 5: "Your bid 3.0" echoes the lavender guess-prompt, value in purple — ties the bid to the guess theme */
 .lx-yourbid { text-align: center; margin-top: 8px; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 100; font-size: 13px; letter-spacing: 4px; text-transform: uppercase; color: #b3a6d0; }
 .lx-yourbid b { display: block; margin-top: 4px; font-size: 30px; font-weight: 200; letter-spacing: 0; color: var(--purple); }
@@ -536,6 +536,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
   /* touch-friendly action buttons on phones */
   .lx-ok, .lx-btn, .lx-try-btn { font-size: 14px; padding: 12px 26px; min-height: 44px; }
   .lx-below { text-align: center; }   /* center the OK on phones (right-aligned only on wider screens) */
+  .lx-bid-ok { margin: 28px auto 0; }   /* center slide-5 scene OK on phones */
   .lx-two { gap: 10px; }                 /* stay side-by-side on mobile */
   .lx-two .lx-shoe { width: 120px; height: 86px; }
   .lx-two .stars { font-size: 15px; }
