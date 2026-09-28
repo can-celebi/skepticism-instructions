@@ -602,25 +602,25 @@ App.scenes = (function () {
         return;
       }
 
-      // slow staged sequence: value → bid → price on the line, payoff, calc, recap, advice, then reveal the interactive slider
+      // OK-gated: each step's OK reveals the next visual via onStep(); the slider is revealed by onStepsDone
       lx.setLine(line, { tv: null, bid: null, price: null, band: false });
-      T(600,  () => lx.setLine(line, { tv: tv, bid: null, price: null, band: false }));
-      T(1900, () => lx.setLine(line, { tv: tv, bid: c.bid, price: null, band: false }));
-      T(3200, () => lx.setLine(line, { tv: tv, bid: c.bid, price: null, band: true }));   // the ±1 band (rectangle) appears first
-      T(4200, () => { lx.setLine(line, { tv: tv, bid: c.bid, price: price, band: true }); const pm = line.querySelector('.lx-mark.lx-price'); if (pm) { pm.classList.remove('lx-price-appear'); void pm.offsetWidth; pm.classList.add('lx-price-appear'); } });   // then the price rises ~1s later
-      T(4600, () => { q('lx-expf').innerHTML = pfHtml(c.bid, 'lx-stg'); });
-      T(4800, () => { const e = q('lx-expfa'); if (e) e.classList.add('show'); });
-      T(6800, () => {   // text is instant (scope 'main'); the staged T() timings are kept
-        if (App.typewriter) {
-          this._calc = App.typewriter.run(q('lx-excalcbox'), calcStmts(c.bid), () => {
-            T(1200, () => { this._recap = typeText(q('lx-recap'), recapFor(c.bid), TYPE_SLOW, () => {
-              T(1500, () => { this._advice = App.typewriter.run(q('lx-advice'), advice, () => { T(3000, () => q('lx-exbid').classList.add('show')); }, { speed: TYPE_SLOW, scope: 'main' }); });   // hold 3s so the text above can be read before the interactive slider slides in
-            }, 'main'); });
-          }, { speed: TYPE_SLOW, scope: 'main' });
-        } else { update(c.bid); q('lx-advice').innerHTML = advice.map((l) => `<div>${l}</div>`).join(''); q('lx-exbid').classList.add('show'); }
-      });
+      ['lx-expf', 'lx-excalcbox', 'lx-recap', 'lx-advice', 'lx-exbid'].forEach((idn) => { const el = q(idn); if (el) el.style.display = 'none'; });
+      this._ex = { line, tv, price, c, update, pfHtml, calcStmts, recapFor, advice };
     },
-    leave() { (this._t || []).forEach(clearTimeout); if (this._calc) this._calc.cancel(); if (this._recap) this._recap.cancel(); if (this._advice) this._advice.cancel(); if (this._gate) this._gate.cancel(); },
+    // one visual per OK: 0 value · 1 bid · 2 price+band · 3 payoff+calc · 4 recap · 5 advice
+    onStep(api, idx) {
+      if (api.revisit || !this._ex) return;
+      const e = this._ex;
+      const show = (idn, html) => { const el = q(idn); if (!el) return; el.style.display = ''; if (html != null) el.innerHTML = html; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
+      if (idx === 0) lx.setLine(e.line, { tv: e.tv, bid: null, price: null, band: false });
+      else if (idx === 1) lx.setLine(e.line, { tv: e.tv, bid: e.c.bid, price: null, band: false });
+      else if (idx === 2) { lx.setLine(e.line, { tv: e.tv, bid: e.c.bid, price: e.price, band: true }); const pm = e.line.querySelector('.lx-mark.lx-price'); if (pm) { pm.classList.remove('lx-price-appear'); void pm.offsetWidth; pm.classList.add('lx-price-appear'); } }
+      else if (idx === 3) { show('lx-expf', e.pfHtml(e.c.bid, '')); show('lx-excalcbox', e.calcStmts(e.c.bid).map((s) => `<p class="stmt">${s}</p>`).join('')); }
+      else if (idx === 4) show('lx-recap', e.recapFor(e.c.bid));
+      else if (idx === 5) show('lx-advice', e.advice.map((l) => `<div>${l}</div>`).join(''));
+    },
+    onStepsDone() { const el = q('lx-exbid'); if (el) { el.style.display = ''; el.classList.add('show'); } },   // reveal the interactive slider last
+    leave() { (this._t || []).forEach(clearTimeout); if (this._gate) this._gate.cancel(); },
   };
 
   // -------------------------------------------------- Slide 12: strategy market (auto price → payoff-history bar plots)

@@ -52,6 +52,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 .lx-remember { color: var(--purple); letter-spacing: .5px; }   /* subtle lead-in for the closing reminder */
 .lx-main .stmt.typing p:last-child::after,
 .lx-para.typing::after { content: ''; }
+.lx-para:has(> .stmt:empty:only-child) { display: none; }   /* OK-gate steps that carry no text (they only reveal a scene visual) take no space */
 /* typing OFF: main text fades in instead of a hard pop (see App.typewriter instant path) */
 .lx-instant-in { animation: lx-instant-fade .4s ease; }
 @keyframes lx-instant-fade { from { opacity: 0; } to { opacity: 1; } }

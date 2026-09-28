@@ -37,6 +37,7 @@ App.stage = (function () {
   }
   function afterStepTyped(stepIdx) {
     const sl = SLIDES[S.i];
+    if (active && active.onStep) active.onStep(api, stepIdx);   // per-step scene hook (e.g. exBid reveals its next visual on each OK)
     if (stepIdx >= sl.steps.length - 1) {
       if (active && active.onStepsDone) active.onStepsDone(api);   // scene reveals its UI after the last text step (used by manualGate scenes)
       if (!sl.manualGate) unlockNextSoon(sl.gateDelayMs || 0);
