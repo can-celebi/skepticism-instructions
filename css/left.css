@@ -66,7 +66,8 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 @keyframes lx-appear { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 /* OK + follow-up text below the animation (left aligned, generously spaced) */
-.lx-below { max-width: 575px; margin: 42px auto 0; text-align: left; }
+.lx-below { max-width: 575px; margin: 42px auto 0; text-align: right; }   /* OK button on the right */
+.lx-below-text { text-align: left; }   /* keep the step text left-aligned */
 .lx-below-text .lx-para { margin: 0 0 18px; }
 .lx-below-text p, .lx-below-text .stmt { font-size: 18px; line-height: 1.65; color: #333; margin: 0 0 18px; }
 .lx-below-text .stmt + .stmt { margin-top: 20px; }
@@ -534,6 +535,7 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
   .lx-dot { width: 5px; height: 5px; }
   /* touch-friendly action buttons on phones */
   .lx-ok, .lx-btn, .lx-try-btn { font-size: 14px; padding: 12px 26px; min-height: 44px; }
+  .lx-below { text-align: center; }   /* center the OK on phones (right-aligned only on wider screens) */
   .lx-two { gap: 10px; }                 /* stay side-by-side on mobile */
   .lx-two .lx-shoe { width: 120px; height: 86px; }
   .lx-two .stars { font-size: 15px; }
