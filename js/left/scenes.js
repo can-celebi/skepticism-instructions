@@ -92,7 +92,7 @@ App.scenes = (function () {
     const shownVals = setup.disclosed.map((i) => S.reviews[i]).sort((a, b) => a - b);
     api.stage.innerHTML =
       `<div class="lx-lead" id="lx-lead5"></div>` +                     // lead-in shown first, above the (initially hidden) reviews + UI
-      `<div class="lx-lead-sub" id="lx-lead5sub" style="opacity:0">During the game, a seller may show all, some or none of them.</div>` +
+      `<div class="lx-lead-sub" id="lx-lead5sub" style="opacity:0">The seller below is not representative of a real seller. During the game, a seller may show all, some or none of them.</div>` +
       `<div class="lx-slowrise" id="lx-rise5">` +
       `<div class="lx-box-title">Displayed reviews</div><div class="lx-bars sm" id="lx-shownbars"></div>` +
       statsHtml('lx-stats5') +
