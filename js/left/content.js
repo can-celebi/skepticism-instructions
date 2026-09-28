@@ -56,6 +56,8 @@ App.content = {
       id: 'disclosure', scene: 'disclosure', title: 'displayed reviews', manualGate: true,
       steps: [
         { text: ['The seller can choose to show <span id="lx-w-none">none</span>, <span id="lx-w-some">some</span> or <span id="lx-w-all">all</span> of the 10 product reviews.'] },
+        { text: [''] },   // OK → graph 2 (what the buyer sees)
+        { text: [''] },   // OK → the die / tick controls
       ],
     },
     // 5 — bid

@@ -287,27 +287,28 @@ App.scenes = (function () {
       this.newScenario(api);   // paint an initial sample (hidden until each block reveals)
       this._auto = true;       // rotation runs from graph 1 on; the auto checkbox (shown later) just toggles this
       api.S.hold = true;       // hold the true value constant from the start (checkbox is ticked by default) — rotation varies the reviews, not the value
-      const guideText = 'Press the die for a new true value, or untick “auto” to go through them yourself.';
-      const showControls = (fade) => {
+      const guideText = 'Press the die for a new draw, or untick “auto” to go through them yourself.';
+      this._showControls = (fade) => {
         api.setControls({ die: true, auto: true, autoChecked: true, hold: true, aid: true, guide: ' ' });
         if (fade) { const el = document.getElementById('lx-controls'); if (el) { el.style.opacity = '0'; el.style.transition = 'opacity 3s ease'; requestAnimationFrame(() => { el.style.opacity = '1'; }); } }   // slow, smooth reveal
       };
-      const fadeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) { g.textContent = guideText; g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } };
-      const at = api.S.i;
-      if (api.revisit) {   // Back → everything at once, gate open, no timers
+      this._fadeGuide = () => { const g = document.querySelector('#lx-controls .lx-guide'); if (g) { g.textContent = guideText; g.style.opacity = '0'; requestAnimationFrame(() => { g.style.transition = 'opacity 1.2s ease'; g.style.opacity = '1'; }); } };
+      if (api.revisit) {   // Back → everything at once, gate open
         q('lx-rise4a').style.transition = 'none'; q('lx-rise4b').style.transition = 'none';
         q('lx-rise4a').classList.add('show'); q('lx-rise4b').classList.add('show');
-        showControls(); const g = document.querySelector('#lx-controls .lx-guide'); if (g) g.textContent = guideText;
+        this._showControls(false); const g = document.querySelector('#lx-controls .lx-guide'); if (g) g.textContent = guideText;
         this.autoCycle(api); api.openGate(0); return;
       }
-      // first visit: graph 1 (rotation starts) → (+3s) graph 2 → (+3s) controls appear → (+1s) Next
-      this._stage = [];
-      const T = (ms, fn) => { this._stage.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms)); };
-      T(300,   () => { q('lx-rise4a').classList.add('show'); this.autoCycle(api); });   // reveal graph 1 and begin rotating right away
-      T(5300,  () => q('lx-rise4b').classList.add('show'));            // +5s
-      T(12300, () => { showControls(true); fadeGuide(); });            // +7s — controls come last, fading in slowly over ~3s
-      T(16800, () => api.openGate(0));                                 // Next only after the controls have fully faded in
+      // first visit: OK-gated — step 0 reveals graph 1 (+rotation), step 1 graph 2, step 2 the controls
     },
+    // one reveal per OK (see content steps): 0 graph 1 + rotation · 1 graph 2 · 2 the die/tick controls
+    onStep(api, idx) {
+      if (api.revisit) return;
+      if (idx === 0) { q('lx-rise4a').classList.add('show'); this.autoCycle(api); }
+      else if (idx === 1) { q('lx-rise4b').classList.add('show'); }
+      else if (idx === 2) { if (this._showControls) this._showControls(true); if (this._fadeGuide) this._fadeGuide(); }
+    },
+    onStepsDone(api) { if (!api.revisit) api.openGate(2000); },   // Next after the controls have faded in
     leave() { clearD(); (this._stage || []).forEach(clearTimeout); if (this._guideTyper) this._guideTyper.cancel(); },
     // die → a fresh true value + distribution, manual
     step(api) { this._auto = false; clearD(); this.newScenario(api); },   // die click = manual → stop rotating
