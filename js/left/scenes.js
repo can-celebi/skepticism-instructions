@@ -116,22 +116,13 @@ App.scenes = (function () {
     } else {
       bidBtn.style.opacity = '0';                        // hold the button back until the question is asked
       const at = api.S.i;
-      // 1) the lead-in types first; 2) once done, the reviews + UI fade in; 3) then the guess prompt; 4) then the bid button
-      // 1) lead types; 2) the green sub-line types right after it; 3) the reviews + UI fade in; 4) guess prompt; 5) bid button
-      // lead + green sub-line no longer type (instant, scope 'main'), but still appear one after another; the guess prompt keeps typing
-      typeText(q('lx-lead5'), leadText, TYPE_SLOW, () => {
-        if (api.S.i !== at) return;
-        const sub = q('lx-lead5sub'), subText = sub ? sub.textContent : '';
-        if (sub) sub.style.opacity = '1';
-        typeText(sub, subText, TYPE_SLOW, () => {
-          if (api.S.i !== at) return;
-          if (r) r.classList.add('show');
-          setTimeout(() => {
-            if (api.S.i !== at) return;
-            prompt = typeText(q('lx-guess-prompt'), promptText, TYPE_SLOW, () => { bidBtn.style.transition = 'opacity .5s ease'; bidBtn.style.opacity = '1'; });
-          }, 1400);
-        }, 'main');
-      }, 'main');
+      const T = (ms, fn) => setTimeout(() => { if (api.S.i === at) fn(); }, ms);
+      const fadeInto = (el, text) => { if (!el) return; el.textContent = text; el.style.opacity = '1'; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
+      // hold ~3s (nothing yet), fade in the lead; +1s fade in the green sub-line; then the reviews + the (still-typed) guess prompt
+      T(3000, () => fadeInto(q('lx-lead5'), leadText));
+      T(4000, () => { const sub = q('lx-lead5sub'); fadeInto(sub, sub ? sub.textContent : ''); });
+      T(5200, () => { if (r) r.classList.add('show'); });
+      T(6600, () => { prompt = typeText(q('lx-guess-prompt'), promptText, TYPE_SLOW, () => { bidBtn.style.transition = 'opacity .5s ease'; bidBtn.style.opacity = '1'; }); });
     }
     const sl = q('lx-slider'), val = q('lx-bidval');
     sl.addEventListener('input', () => { S.bid = round1(+sl.value); val.textContent = S.bid.toFixed(1); });
