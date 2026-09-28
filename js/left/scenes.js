@@ -468,9 +468,14 @@ App.scenes = (function () {
         return;
       }
       // first visit: stage 2 stays hidden (inline display:none in the markup, so it never flashes) until explore A is closed
+      this._s6t = [];
+      const at = api.S.i, T = (ms, fn) => this._s6t.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms));
+      const reveal = (id) => { const e = document.getElementById(id); if (e) { e.style.display = 'inline-block'; e.classList.add('lx-fade'); } };
+      this._revealExpB = () => T(5000, () => reveal('lx-expwrap-b'));   // explore-2 prompt, 5s after the bid rule appears
+      T(3000, () => reveal('lx-expwrap-a'));                            // explore-1 prompt, 3s after the sentence above
     },
     onInfoClosed(key) {
-      if (key === 'priceDemoA') { if (this._showStage2) this._showStage2(); return; }   // stage-1 box closed → reveal the bid rule + stage-2 explore
+      if (key === 'priceDemoA') { if (this._showStage2) this._showStage2(); if (this._revealExpB) this._revealExpB(); return; }   // stage-1 closed → bid rule + (delayed) stage-2 explore
       if (key === 'priceDemoB' || key === 'priceDemo') this.revealC(false);              // trade box closed → part C (old-6 uses 'priceDemo')
     },
     revealC(instant) {
@@ -506,7 +511,7 @@ App.scenes = (function () {
         this._t2 = App.typewriter.run(ntEl, noTrade, () => api.openGate(4000), { speed: TYPE_SLOW, scope: 'main' });   // Next unlocks ~4s after the last OK
       });
     },
-    leave() { if (this._th) this._th.cancel(); if (this._t1) this._t1.cancel(); if (this._t2) this._t2.cancel(); },
+    leave() { if (this._th) this._th.cancel(); if (this._t1) this._t1.cancel(); if (this._t2) this._t2.cancel(); (this._s6t || []).forEach(clearTimeout); },
   };
 
   // -------------------------------------------------- bidding examples (step-by-step)
