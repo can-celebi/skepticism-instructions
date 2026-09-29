@@ -15,15 +15,22 @@ App.stage = (function () {
   function spinDie() { const d = $('lx-die'); if (d) { d.classList.remove('spin'); void d.offsetWidth; d.classList.add('spin'); } }
 
   // ---- text steps ----
+  // where a step's text goes: lx-main (above the stage) or lx-below-text (below it).
+  // stepsInMain → all in main; belowFrom:N → steps < N in main, the rest below (e.g. text above then below the image); default → only step 0 in main.
+  function stepTargetEl(stepIdx) {
+    const sl = SLIDES[S.i];
+    const inMain = sl.stepsInMain || (sl.belowFrom != null ? stepIdx < sl.belowFrom : stepIdx === 0);
+    return inMain ? $('lx-main') : $('lx-below-text');
+  }
   function typeStep(stepIdx, onDone) {
     const step = SLIDES[S.i].steps[stepIdx];
-    const target = (stepIdx === 0 || SLIDES[S.i].stepsInMain) ? $('lx-main') : $('lx-below-text');
+    const target = stepTargetEl(stepIdx);
     const para = document.createElement('div'); para.className = 'lx-para'; target.appendChild(para);
     typeHandle = App.typewriter.run(para, step.text, () => { if (onDone) onDone(); afterStepTyped(stepIdx); }, { scope: 'main' });
   }
   function staticStep(stepIdx) {
     const step = SLIDES[S.i].steps[stepIdx];
-    const target = (stepIdx === 0 || SLIDES[S.i].stepsInMain) ? $('lx-main') : $('lx-below-text');
+    const target = stepTargetEl(stepIdx);
     const para = document.createElement('div'); para.className = 'lx-para';
     para.innerHTML = step.text.map((t) => `<p class="stmt">${t}</p>`).join('');
     target.appendChild(para);
@@ -148,15 +155,24 @@ App.stage = (function () {
     if (!window.Chart) return;
     const xs = []; for (let x = 0; x <= 6.0001; x += 0.1) xs.push(Math.round(x * 10) / 10);
     const pdf = (mu) => xs.map((x) => Math.exp(-((x - mu) * (x - mu)) / (2 * 0.25)));   // sigma 0.5
+    // dashed ±1 lines that track the true value — they bracket almost the whole curve
+    const bandLines = { id: 'bandLines', afterDatasetsDraw(chart) {
+      const mu = chart.$mu == null ? 3 : chart.$mu, x = chart.scales.x, { top, bottom } = chart.chartArea;
+      chart.ctx.save(); chart.ctx.strokeStyle = '#1769c0'; chart.ctx.globalAlpha = 0.7; chart.ctx.lineWidth = 1.5; chart.ctx.setLineDash([4, 3]);
+      [mu - 1, mu + 1].forEach((v) => { if (v < 0 || v > 6) return; const px = x.left + (x.right - x.left) * (v / 6); chart.ctx.beginPath(); chart.ctx.moveTo(px, top); chart.ctx.lineTo(px, bottom); chart.ctx.stroke(); });
+      chart.ctx.restore();
+    } };
     distChart = new Chart($('lx-dist-canvas'), {
       type: 'line',
       data: { labels: xs, datasets: [{ data: pdf(3), borderColor: '#111', borderWidth: 2, pointRadius: 0, tension: 0.35, fill: true, backgroundColor: 'rgba(23,105,192,0.12)' }] },
       options: { animation: { duration: 500 }, responsive: true, maintainAspectRatio: false,
         scales: { x: { ticks: { callback: (v, i) => (xs[i] % 1 === 0 ? xs[i] : '') }, grid: { display: false } }, y: { display: false } },
         plugins: { legend: { display: false }, tooltip: { enabled: false } } },
+      plugins: [bandLines],
     });
+    distChart.$mu = 3;
     const sl = $('lx-dist-slider'), val = $('lx-dist-val');
-    sl.addEventListener('input', () => { const mu = +sl.value; val.textContent = mu.toFixed(1); distChart.data.datasets[0].data = pdf(mu); distChart.update(); });
+    sl.addEventListener('input', () => { const mu = +sl.value; val.textContent = mu.toFixed(1); distChart.$mu = mu; distChart.data.datasets[0].data = pdf(mu); distChart.update(); });
   }
   // interactive price demo inside the info box — OWN local state (tv/price), isolated from the game S
   function buildPriceDemo() {

@@ -21,7 +21,7 @@ App.content = {
     },
     // 2 — two-panel
     {
-      id: 'two-panel', scene: 'twoPanel', title: 'overview', stepsInMain: true,
+      id: 'two-panel', scene: 'twoPanel', title: 'overview', belowFrom: 3,   // segments 1-3 above the example image, 4-7 below it
       steps: [
         { text: ['In this game, the seller is randomly assigned a product whose true value lies between 1 and 5.'] },
         { text: ["As a buyer, you don't know the product's true value."] },
@@ -221,7 +221,8 @@ App.content = {
       dist: true,
       lines: [
         'The curve below shows how likely each review is: the taller it stands, the more reviews land there.',
-        'It peaks at the true value, so most reviews sit close to it, and fades toward the edges — only a few land about a point above or below.',
+        'It peaks at the true value, so most reviews sit close to it and fade toward the edges.',
+        'The <span class="lx-band-chip"></span> dashed lines mark one point below and above the true value — nearly every review falls between them.',
       ],
       hint: 'Use the slider to move the true value and watch the curve shift with it.',
     },
