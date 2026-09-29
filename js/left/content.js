@@ -220,10 +220,10 @@ App.content = {
       title: 'Reviews in detail',
       dist: true,
       lines: [
-        'Most of the reviews are close to the true value.',
-        'Formally, each review is drawn from a bell-shaped <b>normal distribution</b> centred on the true value (standard deviation 0.5).',
+        'The curve below shows how likely each review is: the taller it stands, the more reviews land there.',
+        'It peaks at the true value, so most reviews sit close to it, and fades toward the edges — only a few land about a point above or below.',
       ],
-      hint: 'Use the slider to change the true value and watch the distribution shift.',
+      hint: 'Use the slider to move the true value and watch the curve shift with it.',
     },
   },
 };
