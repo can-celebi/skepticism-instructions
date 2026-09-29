@@ -205,11 +205,10 @@ App.scenes = (function () {
   const twoPanel = {
     enter(api) {
       api.setControls({});
-      const start = () => api.carousel(() => this.rotate(api), 3000);   // carousel fires immediately then every 3s
-      if (api.revisit) { start(); return; }
-      const at = api.S.i;   // first visit: hold ~4s so the text above is read, then ease the panel in (see .lx-window fade)
-      this._delay = setTimeout(() => { if (api.S.i === at) start(); }, 4000);
+      if (api.revisit) api.carousel(() => this.rotate(api), 3000);   // Back → show at once
+      // first visit: the example panel appears on step 2 (onStep), with "All you can see are the reviews…" — takes no space before then
     },
+    onStep(api, idx) { if (!api.revisit && idx === 2) api.carousel(() => this.rotate(api), 3000); },   // reveal the two-panel with segment 3
     rotate(api) {
       const S = api.S; draw(S, false); const k = 3 + Math.floor(Math.random() * 3);
       if (!q('lx-img-host')) {
@@ -221,7 +220,7 @@ App.scenes = (function () {
       this._t1 = swipeUp(q('lx-img-host'), `<div class="lx-imgcard"><img class="lx-shoe" src="${S.product}" alt="product"><div class="lx-val lx-q">?</div></div>`, api);
       this._t2 = swipeUp(q('lx-rev-host'), lx.reviewList(rowsOf(topK(S.reviews, k)), {}), api);
     },
-    leave() { clearTimeout(this._t1); clearTimeout(this._t2); },
+    leave() { clearTimeout(this._delay); clearTimeout(this._t1); clearTimeout(this._t2); },
   };
 
   // -------------------------------------------------- Slide 3: reviews (bars) + tv heading + aid legend

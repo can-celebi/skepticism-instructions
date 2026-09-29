@@ -21,23 +21,15 @@ App.content = {
     },
     // 2 — two-panel
     {
-      id: 'two-panel', scene: 'twoPanel', title: 'overview', okDelayMs: 6000,
+      id: 'two-panel', scene: 'twoPanel', title: 'overview', stepsInMain: true,
       steps: [
-        { text: [
-          'In this game, the seller is randomly assigned a product whose true value lies between 1 and 5.',
-          "<span class=\"lx-gap\"></span>As a buyer, you don't know the product's true value.",
-          '<span class="lx-gap"></span>All you can see are the reviews the seller chooses to show you.',
-        ] },
-        // archived: "Seller's task: …" / "Your task: …" (bold labels) — replaced with two plain sentences
-        { text: [
-          'The seller chooses which reviews to display to you.',
-          'You bid what you believe the product is worth based on the displayed reviews.',
-        ] },
-        { text: [
-          '<span class="lx-hr"></span>',
-          'The seller earns more the <span class="lx-key">higher</span> you bid.',
-          '<span class="lx-wideline">You earn more the <span class="lx-key">closer</span> your bid is to the true value.</span>',
-        ] },
+        { text: ['In this game, the seller is randomly assigned a product whose true value lies between 1 and 5.'] },
+        { text: ["As a buyer, you don't know the product's true value."] },
+        { text: ['All you can see are the reviews the seller chooses to show you.'] },   // the example image appears here (twoPanel onStep)
+        { text: ['The seller chooses which reviews to display to you.'] },
+        { text: ['You bid what you believe the product is worth based on the displayed reviews.'] },
+        { text: ['The seller earns more the <span class="lx-key">higher</span> you bid.'] },
+        { text: ['<span class="lx-wideline">You earn more the <span class="lx-key">closer</span> your bid is to the true value.</span>'] },
       ],
     },
     // 3 — reviews (normalized bars)
@@ -46,7 +38,7 @@ App.content = {
       steps: [
         { text: [
           'The seller has <span class="lx-key">10 reviews</span> to show.',
-          'Each review is close to the true value but can sometimes be farther off.',
+          "Each review lands around the product's true value, usually within about a point of it, but can sometimes be farther off.",
           '<span class="lx-explore-wrap" id="lx-explore-wrap">Click <button class="lx-explore-btn" data-info="reviewSpread">explore</button> to see how the reviews are spread out.</span><button class="lx-inline-info lx-reopen" id="lx-reopen" data-info="reviewSpread" aria-label="more info" hidden>i</button>',
         ] },
       ],
