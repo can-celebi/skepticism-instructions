@@ -116,5 +116,46 @@ App.lx = (function () {
     mark('.lx-tv', o.tv, o.tvTag); mark('.lx-bidm', o.bid, o.bidTag); mark('.lx-price', o.price, o.priceTag);
   }
 
-  return { pct, f1, product, reviewList, rows, bars, killChart, line, setLine };
+  // price zones overlaid INSIDE an existing .lx-line (worked examples only).
+  // green = the price range below the true value (good deal), pink = above (loss);
+  // both span the ±1 price range split at the value. A diagonal hatch + a bracket
+  // marks the sub-range between the bid and the value (the span the bid is off by).
+  // The caption text is authored by the caller (exBid scene, user-facing); setZones
+  // positions it directly under the bracket (or under the value when there is none).
+  function setZones(root, o) {
+    let host = root.querySelector(':scope > .lx-zones');
+    if (!host) {
+      host = document.createElement('div'); host.className = 'lx-zones';
+      host.innerHTML =
+        '<div class="lx-zone lx-zone-green"></div>' +
+        '<div class="lx-zone lx-zone-pink"></div>' +
+        '<div class="lx-zone lx-zone-hatch" hidden></div>' +
+        '<div class="lx-zbracket" hidden></div>' +
+        '<div class="lx-zcap" hidden></div>';
+      root.insertBefore(host, root.firstChild);   // first child → painted behind the axis + marks
+    }
+    const cap = host.querySelector('.lx-zcap');
+    if (!o || o.tv == null) { host.hidden = true; return; }
+    host.hidden = false;
+    const tv = o.tv;
+    const place = (sel, lo, hi) => { const el = host.querySelector(sel); el.style.left = pct(lo) + '%'; el.style.width = Math.max(0, pct(hi) - pct(lo)) + '%'; };
+    const gLo = clamp(tv - 1, 0, 6), mid = clamp(tv, 0, 6), pHi = clamp(tv + 1, 0, 6);
+    place('.lx-zone-green', gLo, mid);   // price below value → good deal
+    place('.lx-zone-pink', mid, pHi);    // price above value → loss
+    const hatch = host.querySelector('.lx-zone-hatch'), brk = host.querySelector('.lx-zbracket');
+    let capCenter = mid;   // anchor the caption under the bracket, or under the value when there is no bracket
+    if (o.bid == null || round1(o.bid) === round1(tv)) { hatch.hidden = true; brk.hidden = true; }
+    else {
+      let lo, hi;
+      if (o.bid > tv) { lo = mid; hi = clamp(Math.min(o.bid, tv + 1), 0, 6); }   // overbid → over the pink zone
+      else { lo = clamp(Math.max(o.bid, tv - 1), 0, 6); hi = mid; }              // underbid → over the green zone
+      place('.lx-zone-hatch', lo, hi); place('.lx-zbracket', lo, hi);
+      hatch.hidden = false; brk.hidden = false;
+      capCenter = (lo + hi) / 2;
+    }
+    if (o.caption == null) { cap.hidden = true; }
+    else { cap.hidden = false; cap.textContent = o.caption; cap.style.left = pct(capCenter) + '%'; }
+  }
+
+  return { pct, f1, product, reviewList, rows, bars, killChart, line, setLine, setZones };
 })();

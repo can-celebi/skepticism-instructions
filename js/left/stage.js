@@ -8,6 +8,21 @@ App.stage = (function () {
   const DEBUG = /\bdebug\b/.test(location.search);   // dev-only slide jumper — activate by adding ?debug to the URL; off for participants (see DEBUG.md)
 
   let S = null, active = null, carTimer = null, typeHandle = null, warnT = null, debugSel = null;
+  let cdTimer = null, gateCountdownActive = false;   // countdown-on-Next state (PURELY visual — never changes when a gate opens)
+  // short "what to do right now" lines, each REUSING wording already shown on that slide (no new instructional copy).
+  // keyed by stable slide id; config.CONDITION/DIRECTIVE are from an older model and do not map to these slides.
+  // The treatment-VARYING entries (bid / ex-bid*) are routed through the single text seam
+  // (App.T, tagged kind:'action-hint' in treatment.js) and resolved live here; the identical
+  // ones stay inline. Read fresh each call so a dropdown treatment switch is reflected at once.
+  function actionHint(id) {
+    switch (id) {
+      case 'reviews':  return 'To continue: click explore above.';
+      case 'price':    return 'To continue: click explore above.';
+      case 'ex-bid-1':
+      case 'ex-bid-2': return App.T('hint.exbid');
+      default:         return null;
+    }
+  }
 
   function showWarn(msg) { const w = $('lx-warn'); w.textContent = msg; w.hidden = false; clearTimeout(warnT); warnT = setTimeout(() => { w.hidden = true; }, 3500); }
   function stopCarousel() { if (carTimer) { clearInterval(carTimer); carTimer = null; } }
@@ -46,13 +61,15 @@ App.stage = (function () {
     const sl = SLIDES[S.i];
     if (active && active.onStep) active.onStep(api, stepIdx);   // per-step scene hook (e.g. exBid reveals its next visual on each OK)
     if (stepIdx >= sl.steps.length - 1) {
+      S.stepsDone = true;   // all text steps revealed → an action hint may now apply
       if (active && active.onStepsDone) active.onStepsDone(api);   // scene reveals its UI after the last text step (used by manualGate scenes)
       if (!sl.manualGate) unlockNextSoon(sl.gateDelayMs || 0);
     }
+    refreshGateCue();
   }
-  function showOk() { const b = $('lx-ok'); const sl = SLIDES[S.i], step = sl.steps && sl.steps[S.step]; b.textContent = (step && step.ok) || sl.okLabel || 'OK'; b.hidden = false; b.classList.add('show'); }
+  function showOk() { const b = $('lx-ok'); const sl = SLIDES[S.i], step = sl.steps && sl.steps[S.step]; b.textContent = (step && step.ok) || sl.okLabel || 'OK'; b.hidden = false; b.classList.add('show'); refreshGateCue(); }
   function showOkSoon(delay) { if (!delay) { showOk(); return; } const at = S.i, st = S.step; setTimeout(() => { if (S.i === at && S.step === st) showOk(); }, delay); }
-  function hideOk() { $('lx-ok').hidden = true; }
+  function hideOk() { $('lx-ok').hidden = true; refreshGateCue(); }
 
   // ---- control bar ----
   function setControls(cfg) {
@@ -103,8 +120,53 @@ App.stage = (function () {
     $('lx-next').textContent = nextIdx(S.i) === S.i ? 'Done' : 'Next';
     $('lx-next').disabled = !S.gateOpen;
   }
-  function unlockNextSoon(delay) { const at = S.i; setTimeout(() => { if (S.i === at) { const firstTime = !S.done.has(at); S.gateOpen = true; S.done.add(at); refreshNav(); showNextHint(at); if (firstTime && App.bridge && App.bridge.visited) App.bridge.visited(SLIDES[at]); } }, delay); }   // PORT SEAM: gate passed = page finished → record lastPageCompleted
+  function unlockNextSoon(delay) {
+    const at = S.i;
+    if (delay && delay >= 1000 && !S.gateOpen) startCountdown(delay); else refreshGateCue();   // visualize a known timed wait; otherwise let the action hint stand
+    setTimeout(() => { if (S.i === at) { const firstTime = !S.done.has(at); S.gateOpen = true; S.done.add(at); clearCountdown(); hideGateHint(); refreshNav(); showNextHint(at); if (firstTime && App.bridge && App.bridge.visited) App.bridge.visited(SLIDES[at]); } }, delay);
+  }   // PORT SEAM: gate passed = page finished → record lastPageCompleted
   function showNextHint(i) { const sl = SLIDES[i], h = $('lx-nexthint'); if (!h || !sl || !sl.nextHint) return; h.textContent = sl.nextHint; h.hidden = false; void h.offsetWidth; h.classList.add('show'); }
+
+  // ---- gate affordances (VISUAL ONLY — these never open/close the gate or touch App.bridge) ----
+  function okVisible() { const b = $('lx-ok'); return !!(b && !b.hidden); }
+  function hideGateHint() { const h = $('lx-gatehint'); if (h) { h.hidden = true; h.classList.remove('show', 'lx-pulse'); } }
+  function showGateHint(text) { const h = $('lx-gatehint'); if (!h) return; h.textContent = text; h.hidden = false; h.classList.remove('show'); void h.offsetWidth; h.classList.add('show'); }
+  // decide whether the required-action hint should be visible right now
+  function refreshGateCue() {
+    if (!S) return;
+    if (S.gateOpen || gateCountdownActive) { hideGateHint(); return; }   // gate open → nexthint takes over; a timed countdown owns the cue instead
+    const sl = SLIDES[S.i], hint = sl && actionHint(sl.id);
+    // show only once the slide's text steps are done (so it never flickers between OK steps), the user has not
+    // already engaged the stage, and no OK button is the obvious action.
+    if (!hint || !S.stepsDone || S.hintConsumed || okVisible()) { hideGateHint(); return; }
+    showGateHint(hint);
+  }
+  function clearCountdown() {
+    if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
+    gateCountdownActive = false;
+    const b = $('lx-nextcount'); if (b) { b.hidden = true; b.classList.remove('run'); b.textContent = ''; b.style.removeProperty('--cd-dur'); }
+  }
+  // show a shrinking count on Next for a KNOWN timed wait; reads the SAME delay the engine uses, changes no timing
+  function startCountdown(delay) {
+    clearCountdown();
+    const b = $('lx-nextcount');
+    if (!b || !delay || delay < 1000 || S.gateOpen) return;   // only worth showing for a real, known wait
+    gateCountdownActive = true; hideGateHint();
+    const end = Date.now() + delay, reduce = App.reduceMotion && App.reduceMotion();
+    const render = () => { b.textContent = String(Math.max(0, Math.ceil((end - Date.now()) / 1000))); };
+    b.hidden = false; render();
+    if (!reduce) { b.style.setProperty('--cd-dur', delay + 'ms'); b.classList.remove('run'); void b.offsetWidth; b.classList.add('run'); }   // depleting ring; under reduce-motion just the number
+    cdTimer = setInterval(() => { render(); if (Date.now() >= end) { clearInterval(cdTimer); cdTimer = null; } }, 200);
+  }
+  function pulseEl(el) { if (!el) return; el.classList.remove('lx-pulse'); void el.offsetWidth; el.classList.add('lx-pulse'); }
+  // tap/click on a still-disabled Next → surface what is being waited on (no hover needed, works on touch)
+  function pulseGateCue() {
+    if (!S || S.gateOpen) return;
+    if (gateCountdownActive) { pulseEl($('lx-nextcount')); return; }
+    const sl = SLIDES[S.i], hint = sl && actionHint(sl.id);
+    if (hint) { S.hintConsumed = false; refreshGateCue(); pulseEl($('lx-gatehint')); return; }
+    if (okVisible()) pulseEl($('lx-ok'));
+  }
   function renderChrome() {
     const sl = SLIDES[S.i];
     { const real = SLIDES.map((s, k) => k).filter((k) => !SLIDES[k].debugOnly);
@@ -121,6 +183,7 @@ App.stage = (function () {
   function outsideInfo(e) { const p = $('lx-info-panel'); if (p.hidden) return; if (p.contains(e.target) || (e.target.closest && e.target.closest('.lx-inline-info'))) return; closeInfo(); }
   function showInfo(key) {
     const info = App.content.INFO[key]; if (!info) return;
+    if (S) { S.hintConsumed = true; refreshGateCue(); }   // opening an explore/info box = the user has engaged → retire the action hint
     lastInfoKey = key;
     $('lx-info-title').textContent = info.title;
     let html;
@@ -230,6 +293,7 @@ App.stage = (function () {
     i = Math.max(0, Math.min(i, SLIDES.length - 1));
     leaveSlide();
     S.i = i; S.step = 0; S.gateOpen = false; S.hold = false; S.aid = false; S.introPending = false;
+    S.stepsDone = false; S.hintConsumed = false; clearCountdown(); hideGateHint();
     $('lx-main').innerHTML = ''; $('lx-below-text').innerHTML = ''; $('lx-stage').innerHTML = '';
     $('lx-controls').innerHTML = ''; $('lx-controls').hidden = true; $('lx-info-panel').hidden = true; hideOk();
     { const h = $('lx-nexthint'); h.hidden = true; h.textContent = ''; h.classList.remove('show'); }
@@ -272,6 +336,16 @@ App.stage = (function () {
     S.done = new Set(); for (let k = 0; k < n; k++) S.done.add(k);
     go(n);
   }
+  // dev/review-only: flip BUYER <-> SELLER. Mirrors "which list the server would have sent":
+  // set the one treatment read, re-resolve the whole text set, rebuild content IN PLACE, restart.
+  function switchTreatment(val) {
+    App.config.TREATMENT = (String(val).toUpperCase() === 'SELLER') ? 'SELLER' : 'BUYER';
+    if (App.resolveText) App.resolveText();              // bake the new resolved set (App.text)
+    if (App.content && App.content.build) App.content.build();   // repopulate SLIDES/INFO in place
+    S.done = new Set(); S.startTime = Date.now();
+    buildDots();
+    go(0);
+  }
   function setupDebug() {
     document.documentElement.classList.add('lx-debug-on');
     const bar = document.createElement('div'); bar.id = 'lx-debug';
@@ -279,14 +353,22 @@ App.stage = (function () {
     const sel = document.createElement('select'); sel.id = 'lx-debug-sel';
     SLIDES.forEach((s, i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = `${s.debugOnly ? '⚙ ' : ''}${i + 1}. ${s.title || s.id}`; sel.appendChild(o); });
     sel.addEventListener('change', () => debugJump(+sel.value));
-    bar.appendChild(sel); document.body.appendChild(bar);
+    bar.appendChild(sel);
+    // dev/review-only BUYER/SELLER picker (same bar as the jumper → never shown to participants)
+    const tsep = document.createElement('span'); tsep.className = 'lx-debug-tag'; tsep.style.marginLeft = '10px'; tsep.textContent = 'treatment:';
+    const tsel = document.createElement('select'); tsel.id = 'lx-debug-treat';
+    ['BUYER', 'SELLER'].forEach((t) => { const o = document.createElement('option'); o.value = t; o.textContent = t; tsel.appendChild(o); });
+    tsel.value = (App.config.TREATMENT === 'SELLER') ? 'SELLER' : 'BUYER';
+    tsel.addEventListener('change', () => switchTreatment(tsel.value));
+    bar.appendChild(tsep); bar.appendChild(tsel);
+    document.body.appendChild(bar);
     debugSel = sel; debugSel.value = String(S.i);
     $('lx-dots').addEventListener('click', (e) => { const d = e.target.closest('.lx-dot'); if (d) debugJump(+d.dataset.i); });   // clickable footer dots
   }
 
   function mount() {
     S = { i: -1, step: 0, tv: null, reviews: [], disclosed: new Set(), product: null, bid: 3.0, price: null,
-          hold: false, aid: false, gateOpen: false, done: new Set(), startTime: Date.now() };
+          hold: false, aid: false, gateOpen: false, stepsDone: false, hintConsumed: false, done: new Set(), startTime: Date.now() };
     if (App.bridge && App.bridge.setup) App.bridge.setup();   // PORT SEAM: receive setup-instruction2-CLIENT {textList, lastFinishedPage} + jumpTo
     buildDots();
     $('lx-ok').addEventListener('click', advanceStep);
@@ -308,6 +390,10 @@ App.stage = (function () {
     });
     $('lx-back').addEventListener('click', () => go(prevIdx(S.i)));
     $('lx-info-close').addEventListener('click', closeInfo);
+    // engaging the stage (dragging a slider, clicking a bar/die) retires the "what to do" hint
+    $('lx-stage').addEventListener('pointerdown', () => { if (S && !S.hintConsumed) { S.hintConsumed = true; refreshGateCue(); } });
+    // tapping the Next AREA while it is still gated surfaces the reason (hint / countdown / OK) — no hover needed
+    { const wrap = $('lx-next').parentNode; if (wrap) wrap.addEventListener('pointerdown', () => { if (S && !S.gateOpen) pulseGateCue(); }); }
     go(0);
     if (DEBUG) setupDebug();
   }

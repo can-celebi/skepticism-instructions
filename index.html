@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Instructions — left-column prototype</title>
-  <link rel="stylesheet" href="./css/left.css?v=118" />
+  <link rel="stylesheet" href="./css/left.css?v=128" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -36,6 +36,7 @@
             <button id="lx-ok" class="lx-ok" hidden>OK</button>
           </div>
           <div class="lx-nexthint" id="lx-nexthint" hidden></div>
+          <div class="lx-gatehint" id="lx-gatehint" hidden></div>
         </div>
       </section>
     </div>
@@ -50,22 +51,24 @@
     <footer class="lx-footer" id="lx-footer">
       <button class="lx-nav" id="lx-back">Back</button>
       <div class="lx-dots" id="lx-dots"></div>
-      <button class="lx-nav next" id="lx-next">Next</button>
+      <span class="lx-next-wrap"><span id="lx-nextcount" class="lx-nextcount" hidden aria-hidden="true"></span><button class="lx-nav next" id="lx-next">Next</button></span>
     </footer>
   </div>
 
   <!-- reused pure engines (?v= cache-buster: bump alongside the CSS version on every deploy) -->
-  <script src="./js/config.js?v=118"></script>
-  <script src="./js/rng.js?v=118"></script>
-  <script src="./js/stars.js?v=118"></script>
-  <script src="./js/products.js?v=118"></script>
-  <script src="./js/typewriter.js?v=118"></script>
+  <script src="./js/config.js?v=128"></script>
+  <!-- treatment TEXT seam + settings: MUST load after config.js and before content.js -->
+  <script src="./js/left/treatment.js?v=128"></script>
+  <script src="./js/rng.js?v=128"></script>
+  <script src="./js/stars.js?v=128"></script>
+  <script src="./js/products.js?v=128"></script>
+  <script src="./js/typewriter.js?v=128"></script>
   <!-- new left-column modules -->
-  <script src="./js/left/bridge.js?v=118"></script>
-  <script src="./js/left/content.js?v=118"></script>
-  <script src="./js/left/widgets.js?v=118"></script>
-  <script src="./js/left/scenes.js?v=118"></script>
-  <script src="./js/left/stage.js?v=118"></script>
-  <script src="./js/left/app.js?v=118"></script>
+  <script src="./js/left/bridge.js?v=128"></script>
+  <script src="./js/left/content.js?v=128"></script>
+  <script src="./js/left/widgets.js?v=128"></script>
+  <script src="./js/left/scenes.js?v=128"></script>
+  <script src="./js/left/stage.js?v=128"></script>
+  <script src="./js/left/app.js?v=128"></script>
 </body>
 </html>

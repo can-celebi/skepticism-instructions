@@ -1,8 +1,17 @@
 // content.js — the new left-column instruction script.
+// Treatment-VARYING user-facing strings are pulled from the single text seam via
+// App.T('key') (see treatment.js). Strings IDENTICAL across treatments stay as
+// literals here. App.content.build() repopulates SLIDES/INFO IN PLACE (same array
+// references, so stage.js's captured `const SLIDES = App.content.SLIDES` stays
+// valid) — the dev dropdown calls it to re-resolve text when treatment changes.
 window.App = window.App || {};
 
-App.content = {
-  SLIDES: [
+App.content = { SLIDES: [], INFO: {} };
+
+App.content.build = function () {
+  var T = App.T;   // the single resolver read; never branch on treatment for TEXT here
+
+  var SLIDES = [
     // 1 — product
     {
       id: 'product', scene: 'product', title: 'context', gateDelayMs: 2000, okDelayMs: 2000, nextHint: 'click next to proceed',
@@ -11,25 +20,24 @@ App.content = {
         '<span class="lx-gap-lg"></span>You will now go through instructions on how to play the game, followed by a short quiz, and then the game itself.',
       ],
       steps: [
-        { text: ['Think of a product you bought recently, one where you checked the online reviews first.'] },
+        { text: [T('product.hook')] },
         { text: [
           'This experiment recreates a similar scenario as a game between a seller and a buyer.',
           // "<span class=\"lx-gap\"></span>Only here, the buyer's aim is to judge the product's true value.",
         ] },
-        { text: ['<span class="lx-buyer-line">You are the <strong>buyer</strong>.</span>'] },
+        { text: [T('product.role')] },
       ],
     },
     // 2 — two-panel
     {
-      id: 'two-panel', scene: 'twoPanel', title: 'overview', belowFrom: 3,   // segments 1-3 above the example image, 4-7 below it
+      id: 'two-panel', scene: 'twoPanel', title: 'overview', belowFrom: 3,   // segments 1-3 above the example image, rest below it
       steps: [
-        { text: ['In this game, the seller is randomly assigned a product whose true value lies between 1 and 5.'] },
-        { text: ["As a buyer, you don't know the product's true value."] },
-        { text: ['All you can see are the reviews the seller chooses to show you.'] },   // the example image appears here (twoPanel onStep)
-        { text: ['The seller chooses which reviews to display to you.'] },
-        { text: ['You bid what you believe the product is worth based on the displayed reviews.'] },
-        { text: ['The seller earns more the <span class="lx-key">higher</span> you bid.'] },
-        { text: ['<span class="lx-wideline">You earn more the <span class="lx-key">closer</span> your bid is to the true value.</span>'] },
+        { text: [T('twoPanel.0')] },
+        { text: [T('twoPanel.1')] },
+        { text: [T('twoPanel.2')] },   // the example image appears here (twoPanel onStep)
+        { text: [T('twoPanel.4')] },
+        { text: [T('twoPanel.5')] },
+        { text: [T('twoPanel.6')] },
       ],
     },
     // 3 — reviews (normalized bars)
@@ -37,7 +45,7 @@ App.content = {
       id: 'reviews', scene: 'reviews', title: 'reviews', manualGate: true,
       steps: [
         { text: [
-          'The seller has <span class="lx-key">10 reviews</span> to show.',
+          T('reviews.have'),
           "Each review lands around the product's true value, usually within about a point of it, but can sometimes be farther off.",
           '<span class="lx-explore-wrap" id="lx-explore-wrap">Click <button class="lx-explore-btn" data-info="reviewSpread">explore</button> to see how the reviews are spread out.</span><button class="lx-inline-info lx-reopen" id="lx-reopen" data-info="reviewSpread" aria-label="more info" hidden>i</button>',
         ] },
@@ -47,7 +55,7 @@ App.content = {
     {
       id: 'disclosure', scene: 'disclosure', title: 'displayed reviews', manualGate: true,
       steps: [
-        { text: ['The seller can choose to show <span id="lx-w-none">none</span>, <span id="lx-w-some">some</span> or <span id="lx-w-all">all</span> of the 10 product reviews.'] },
+        { text: [T('disclosure.showNoneSomeAll')] },
         { text: [''] },   // OK → graph 2 (what the buyer sees)
         { text: [''] },   // OK → the die / tick controls
       ],
@@ -57,8 +65,8 @@ App.content = {
       id: 'bid', scene: 'bid', title: 'bid', manualGate: true,
       steps: [
         { text: [
-          'You only see the reviews selected by the seller.',
-          "Your goal is to bid the product's true value.",
+          T('bid.intro0'),
+          T('bid.intro1'),
         ] },
         { text: [''] },   // OK here → the example (lead + reviews) begins (see the bid scene's onStepsDone)
       ],
@@ -68,13 +76,14 @@ App.content = {
       id: 'price', scene: 'priceInfo', title: 'trade', manualGate: true,
       steps: [
         { text: [
-          "After you <span class=\"lx-red\">bid</span>, a <span class=\"lx-blue\">sales price</span> is picked around the product's true value.",
+          T('price.afterBid'),
+          T('price.bidNoChange'),
           "<span class=\"lx-explore-wrap\" id=\"lx-expwrap-a\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoA\">explore</button> to see how the price is drawn.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoA\" aria-label=\"more info\" hidden>i</button>",
           // stage 2 — hidden until the stage-1 (priceDemoA) box is explored + closed (see priceInfo scene)
-          "<span class=\"lx-s6-stage2\" id=\"lx-s6-stage2\" style=\"display:none\">Your <span class=\"lx-red\">bid</span> is the maximum <span class=\"lx-blue\">price</span> you are willing to pay:" +
+          "<span class=\"lx-s6-stage2\" id=\"lx-s6-stage2\" style=\"display:none\">" + T('price.bidMaxHead') +
             "<span class=\"lx-conds\">" +
-              "<span class=\"lx-cond yes\"><span class=\"lx-cond-txt\">If the <span class=\"lx-blue\">price</span> is at or below your <span class=\"lx-red\">bid</span>, you buy the product automatically.</span><span class=\"lx-cond-tag\">trade happens</span></span>" +
-              "<span class=\"lx-cond no\"><span class=\"lx-cond-txt\">If the <span class=\"lx-blue\">price</span> is above your <span class=\"lx-red\">bid</span>, you don't buy the product.</span><span class=\"lx-cond-tag\">no trade</span></span>" +
+              "<span class=\"lx-cond yes\"><span class=\"lx-cond-txt\">" + T('price.condYes') + "</span><span class=\"lx-cond-tag\">trade happens</span></span>" +
+              "<span class=\"lx-cond no\"><span class=\"lx-cond-txt\">" + T('price.condNo') + "</span><span class=\"lx-cond-tag\">no trade</span></span>" +
             "</span>" +
             "<span class=\"lx-explore-wrap\" id=\"lx-expwrap-b\">Click <button class=\"lx-explore-btn\" data-info=\"priceDemoB\">explore</button> to see when a trade happens.</span><button class=\"lx-inline-info lx-reopen\" data-info=\"priceDemoB\" aria-label=\"more info\" hidden>i</button>" +
           "</span>",
@@ -92,6 +101,9 @@ App.content = {
     //   ] } ],
     // },
     // 7 — segue into the examples
+    // STUB: the over/underbidding examples are a buyer concept. Their seller analogue
+    // (a disclosure lesson) is an OPEN design question (SELLER-SWITCH-MAP open #2), so the
+    // examples slides below stay buyer-framed for BOTH treatments for now. /* REVIEW: seller examples TBD */
     {
       id: 'examples-intro', title: 'examples',
       steps: [{ text: [
@@ -102,11 +114,13 @@ App.content = {
     },
     // 8–10 — bidding examples (step-by-step; final message revealed last)
     // examples are OK-gated: each step is one click (the exBid scene reveals its matching visual on each). steps 3-5 carry no text; they reveal payoff+calc, recap, advice.
+    // NOTE: the payoff cell + calc lines inside the exBid scene are ALREADY TREATMENT-aware
+    // (behavior, not text) and auto-show the seller payoff — do not route those through the seam.
     { id: 'ex-bid-1', scene: 'exBid', title: 'overbidding', manualGate: true, stepsInMain: true,
       exCase: { tv: 2, bid: 4, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value sometimes means no trade, and rightly so, since trading here would have left you worse off.', finalLines: ['You paid 3 for a product worth only 2.', 'Bidding above the true value risks overpaying.'] },
       steps: [
         { text: ["The product's value is 2."] },
-        { text: ['Your bid is <span class="lx-red" id="lx-exbidnum">4</span>. You overbid.'] },
+        { text: ['Your bid is <span class="lx-red" id="lx-exbidnum">4</span>. <span id="lx-exbidqual">You overbid.</span>'] },
         { text: ['The sales price ends up at <span class="lx-blue">3</span>.'] },
         { text: [''] }, { text: [''] }, { text: [''] }, { text: [''] },
       ] },
@@ -114,7 +128,7 @@ App.content = {
       exCase: { tv: 4, bid: 2, price: 3, gateOnTrueValue: true, gateDoneText: 'Bidding the true value, you never miss a good deal.', finalLines: ['You skipped a product worth 4 that you could have bought for 3.', 'Bidding below the true value risks missing a good deal.'] },
       steps: [
         { text: ["The product's value is 4."] },
-        { text: ['Your bid is <span class="lx-red" id="lx-exbidnum">2</span>. You underbid.'] },
+        { text: ['Your bid is <span class="lx-red" id="lx-exbidnum">2</span>. <span id="lx-exbidqual">You underbid.</span>'] },
         { text: ['The sales price ends up at <span class="lx-blue">3</span>.'] },
         { text: [''] }, { text: [''] }, { text: [''] }, { text: [''] },
       ] },
@@ -125,14 +139,12 @@ App.content = {
     // moral / lessons from the examples — each statement behind its own OK
     {
       id: 'lessons', title: 'takeaway',
-      steps: [
-        { text: ['The examples show one simple rule: bid what you believe the product is truly worth.'] },
-        { text: ['Bid above it and you risk overpaying; bid below it and you risk missing a good deal.'] },
-        { text: ["But there's a catch. You don't see the true value."] },
-        { text: ['You have to estimate it from the reviews you are shown.'] },
-        { text: ['And those reviews are chosen by the seller who earns more when you bid higher.'] },
-        { text: ["So the real challenge isn't the bidding rule. It's judging the true value from evidence someone else selected."] },
-      ],
+      // Treatment-dependent length: seller takeaway is 5 lines (ends on lessons.4),
+      // buyer takeaway is 6 lines. Built from App.config.TREATMENT at build() time.
+      steps: ((App.config.TREATMENT === 'SELLER')
+        ? ['lessons.0', 'lessons.1', 'lessons.2', 'lessons.3', 'lessons.4']
+        : ['lessons.0', 'lessons.1', 'lessons.2', 'lessons.3', 'lessons.4', 'lessons.5']
+      ).map(function (k) { return { text: [T(k)] }; }),
     },
     // (disclosure example slides commented out for now — restore when needed)
     // { id: 'ex-disp-1', scene: 'exDisp', title: 'Full disclosure', exDisp: { n: 10 }, steps: [{ text: ['The seller shows all 10 reviews...'] }] },
@@ -149,17 +161,17 @@ App.content = {
     {
       id: 'payment-overview', title: 'payment',
       steps: [{ text: [
-        'You will play <span class="lx-key">5 main rounds</span> and <span class="lx-key">2 additional rounds</span> as a buyer.',
-        'In each round you are matched with a different seller and decide how much to bid after seeing the reviews that seller shows you.',
-        'At the end, <span class="lx-key">two</span> rounds are randomly selected for your bonus: one main round and one additional round.',
+        T('payment.0'),
+        T('payment.1'),
+        T('payment.2'),
       ] }],
     },
     {
       id: 'bonus-payment', title: 'bonus', scene: 'finalNote', manualGate: true,
       steps: [{ text: [
-        'Your bonus is the <span class="lx-key">sum of your earnings</span> from the two selected rounds.',
-        'You may earn or lose stars in each round. Stars convert to money at <span class="lx-key">£5 per star</span>, and you can earn up to <span class="lx-key">£10</span> over the two rounds.',
-        'If your total from this task is negative, the loss is deducted from your other bonus payments.',
+        T('bonus.0'),
+        T('bonus.1'),
+        T('bonus.2'),
       ] }],
     },
     // (practice rounds removed for now)
@@ -168,23 +180,23 @@ App.content = {
     {
       id: 'price-old', scene: 'priceInfo', title: 'trade (6 old)', manualGate: true, debugOnly: true,
       steps: [{ text: [
-        'After you make your <span class="lx-red">bid</span>, a <span class="lx-blue">sales price</span> is picked around the product\'s true value.',
-        'A trade happens only if your <span class="lx-red">bid</span> is bigger than or equal to the <span class="lx-blue">price</span>. <button class="lx-inline-info" data-info="priceDemo" aria-label="more info">i</button> <span class="lx-inline-hint">please click the info button</span>',
+        T('priceOld.0'),
+        T('priceOld.1'),
       ] }],
       partC: {
         header: 'WHEN A TRADE TAKES PLACE',
-        earn: ['You earn the true value minus the <span class="lx-blue">price</span>.', 'The seller earns your <span class="lx-red">bid</span> minus the production cost.'],
-        noTrade: ['If there is no trade, neither you nor the seller earns anything.'],
+        earn: [T('priceOld.earn0'), T('price.earn1')],
+        noTrade: [T('price.noTrade0')],
       },
     },
-  ],
+  ];
 
-  INFO: {
+  var INFO = {
     tradeRule: {
       title: 'When does a trade happen?',
       lines: [
         'A trade takes place when <span class="lx-red">bid</span> ≥ <span class="lx-blue">price</span>.',
-        'If there is no trade, neither you nor the seller earns anything.',
+        T('info.tradeRule.1'),
       ],
     },
     priceDemo: {   // full box — kept for the archived old-6 (debug-only) slide
@@ -211,8 +223,8 @@ App.content = {
       title: 'When does a trade happen?',
       priceDemo: true, pdVariant: 'B',
       lines: [
-        'The true value is fixed here. Change your <span class="lx-red">bid</span> and observe when a trade happens.',
-        'A trade happens only when your <span class="lx-red">bid</span> is at or above the <span class="lx-blue">price</span>.',
+        T('info.priceDemoB.0'),
+        T('info.priceDemoB.1'),
       ],
       hint: 'Move the bid, or press the die to draw a new price.',
     },
@@ -226,5 +238,14 @@ App.content = {
       ],
       hint: 'Use the slider to move the true value and watch the curve shift with it.',
     },
-  },
+  };
+
+  // repopulate IN PLACE so captured references (stage.js `const SLIDES`) stay valid
+  App.content.SLIDES.length = 0;
+  Array.prototype.push.apply(App.content.SLIDES, SLIDES);
+  Object.keys(App.content.INFO).forEach(function (k) { delete App.content.INFO[k]; });
+  Object.keys(INFO).forEach(function (k) { App.content.INFO[k] = INFO[k]; });
+  return App.content;
 };
+
+App.content.build();

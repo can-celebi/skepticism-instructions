@@ -4,6 +4,18 @@ Goal: keep this standalone prototype so that moving it into the real experiment
 (`games/skepticism`, stage `intro-2`) is **a few additions, not a rewrite**. Everything
 here is pure DOM today; at port time only ONE small "port bridge" object changes.
 
+> Counterpart doc (nodegame side, "Kerem" session): verified-against-live-code
+> integration notes live at `games/skepticism/docs/instructions-port-notes.md`
+> in the nodegame repo (`~/Documents/code/nodegame/nodegame-v7.1.0-dev/`). It
+> cross-links this file and COAUTHOR-FEEDBACK.md. Correct CSV header per live
+> code: `['player','instructions2Duration','stage','session','timestamp']`.
+> Known resume gap: the server stores only `lastPageCompleted` today — no
+> per-page data store, so generated values (roll/disclose/bid) are not
+> rehydrated on reconnect; a `pageData` store is specced in that doc. This
+> standalone does NOT persist per-page values either (no localStorage; scene
+> state is in-memory only, kept across Back/Next within a session, lost on
+> reload), so the `pageData` shape is designed fresh on the nodegame side.
+
 ---
 
 ## 1. The mental model (matches the old code exactly)

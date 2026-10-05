@@ -53,7 +53,7 @@ App.scenes = (function () {
   function sliderRaw(id, val, color) { return `<div class="lx-slider-wrap"><input type="range" id="${id}" class="lx-range ${color}" min="0" max="6" step="0.1" value="${val}"><div class="lx-ticks">${TICKS}</div></div>`; }
   const markUsed = (id) => { const e = q(id); if (e) e.classList.add('used'); };
   const TYPE_SLOW = 60;   // accent typing (score/advice/calc/guide): same as the main-text typewriter
-  function bidSlot(bid) { return `<div class="lx-bid-slot" id="lx-bid-slot">${sliderRaw('lx-slider', bid, 'purple')}<div class="lx-yourbid">Your bid <b id="lx-bidval">${bid.toFixed(1)}</b></div></div>`; }
+  function bidSlot(bid) { return `<div class="lx-bid-slot" id="lx-bid-slot">${sliderRaw('lx-slider', bid, 'purple')}<div class="lx-yourbid">${App.T('bid.yourBidLabel')} <b id="lx-bidval">${bid.toFixed(1)}</b></div></div>`; }
 
   // tiny plain-text typewriter (faster/cancellable) for accent lines like the guess prompt & score
   function typeText(el, text, speed, onDone, scope) {
@@ -92,21 +92,21 @@ App.scenes = (function () {
     const shownVals = setup.disclosed.map((i) => S.reviews[i]).sort((a, b) => a - b);
     api.stage.innerHTML =
       `<div class="lx-lead" id="lx-lead5"></div>` +                     // lead-in shown first, above the (initially hidden) reviews + UI
-      `<div class="lx-lead-sub" id="lx-lead5sub" style="opacity:0">The seller below is not representative of a real seller. During the game, a seller may show all, some or none of them.</div>` +
+      `<div class="lx-lead-sub" id="lx-lead5sub" style="opacity:0">${App.T('bid.leadSub')}</div>` +
       `<div class="lx-slowrise" id="lx-rise5">` +
       `<div class="lx-box-title">Displayed reviews</div><div class="lx-bars sm" id="lx-shownbars"></div>` +
       statsHtml('lx-stats5') +
       `<div class="lx-graphic-slot empty tight" id="lx-gslot"><div class="lx-guess-prompt" id="lx-guess-prompt"></div>${lx.line()}</div>` +
       bidSlot(S.bid) +   // slider + "Your bid" sit BELOW the graph, hidden until the bid button is revealed
       `<div class="lx-score" id="lx-score" hidden></div>` +
-      `<div class="lx-btn-slot" id="lx-btnslot"><button id="lx-bid-btn" class="lx-btn ghost">Place your bid</button></div>` +
+      `<div class="lx-btn-slot" id="lx-btnslot"><button id="lx-bid-btn" class="lx-btn ghost">${App.T('bid.button')}</button></div>` +
       `</div>` +
       `<button id="lx-bid-ok" class="lx-ok lx-bid-ok" hidden>OK</button>`;   // advances the reveal stages (like the OK elsewhere)
     q('lx-gslot').querySelector('.lx-line').classList.add('bid-purple');   // slide 5: bid bar purple (ties the bid to the purple guess theme)
     lx.bars(q('lx-shownbars'), shownVals, {});
     setStats('lx-stats5', shownVals);   // min / avg / max of the displayed reviews, below the bars
-    const r = q('lx-rise5'), bidBtn = q('lx-bid-btn'), promptText = "Can you guess the product's true value?";
-    const leadText = 'Below is an example of a seller who displayed all 10 reviews.';
+    const r = q('lx-rise5'), bidBtn = q('lx-bid-btn'), promptText = App.T('bid.prompt');
+    const leadText = App.T('bid.leadText');
     let prompt = { cancel() {} }, begin5 = null;   // begin5: first-visit deferred reveal, run by the scene on the intro-lines OK
     if (api.revisit || setup.replayed) {                 // Back or try-again → lead + guess shown at once, no re-typing
       q('lx-lead5').textContent = leadText;
@@ -214,7 +214,7 @@ App.scenes = (function () {
       if (!q('lx-img-host')) {
         api.stage.innerHTML = `<div class="lx-window"><div class="lx-two">
           <div class="lx-two-l"><div id="lx-img-host"></div><div class="lx-val-label">True value</div></div>
-          <div class="lx-two-r"><div class="lx-box-title">Reviews you see</div><div id="lx-rev-host"></div></div>
+          <div class="lx-two-r"><div class="lx-box-title">${App.T('twoPanel.boxTitle')}</div><div id="lx-rev-host"></div></div>
         </div></div>`;
       }
       this._t1 = swipeUp(q('lx-img-host'), `<div class="lx-imgcard"><img class="lx-shoe" src="${S.product}" alt="product"><div class="lx-val lx-q">?</div></div>`, api);
@@ -270,7 +270,7 @@ App.scenes = (function () {
       api.stage.innerHTML =
         `<div class="lx-slowrise" id="lx-rise4a">` +                       // graph 1: the seller's 10 reviews
           tvHead() +
-          `<div class="lx-box-title">Seller chooses from all 10 reviews</div><div class="lx-bars" id="lx-allb"></div>` +
+          `<div class="lx-box-title">${App.T('disclosure.chooseTitle')}</div><div class="lx-bars" id="lx-allb"></div>` +
           `<div class="lx-picklegend"><span class="pk picked">picked</span><span class="pk notpicked">not picked</span></div>` +
           statsHtml('lx-stats-all') +
           `<div class="lx-aidlegend" id="lx-aidleg" hidden><span class="lg hi">above value</span><span class="lg mid">true value</span><span class="lg lo">below value</span></div>` +
@@ -333,7 +333,7 @@ App.scenes = (function () {
         onClick: (i) => { if (!manual) return; const c = q('lx-cue4'); if (c) c.classList.add('hide'); if (S.disclosed.has(i)) S.disclosed.delete(i); else S.disclosed.add(i); this.paint(api); } });
       const shown = [...S.disclosed].map((i) => S.reviews[i]).sort((a, b) => a - b);
       if (shown.length) { this.cShown.classList.remove('is-empty'); lx.bars(this.cShown, shown, { aid: S.aid, tv: S.tv, animate: true }); }
-      else { lx.killChart(this.cShown); this.cShown.classList.add('is-empty'); this.cShown.innerHTML = '<div class="lx-empty-note">The seller displays no reviews</div>'; }
+      else { lx.killChart(this.cShown); this.cShown.classList.add('is-empty'); this.cShown.innerHTML = `<div class="lx-empty-note">${App.T('disclosure.emptyNote')}</div>`; }
       setStats('lx-stats-all', S.reviews); setStats('lx-stats-shown', shown);
     },
   };
@@ -500,9 +500,9 @@ App.scenes = (function () {
       // part-C text: new version by default; the archived "6 old" slide overrides it via slide().partC
       const C = (slide(api) && slide(api).partC) || {};
       const header = C.header || null;
-      const earnLines = C.earn || ['When you buy, you earn the true value minus the <span class="lx-blue">price</span>.', 'The seller earns your <span class="lx-red">bid</span> minus the production cost.'];
-      const noTrade = C.noTrade || ['If there is no trade, neither you nor the seller earns anything.', '<span class="lx-remember">Remember:</span> your <span class="lx-red">bid</span> never changes the <span class="lx-blue">price</span>, only whether you buy the product or not.'];
-      const lines = earnLines.concat(noTrade);   // 4 sentences, each behind its own OK
+      const earnLines = C.earn || [App.T('price.earn0'), App.T('price.earn1')];
+      const noTrade = C.noTrade || [App.T('price.noTrade0')];   // "Remember..." line removed (coauthor edit)
+      const lines = earnLines.concat(noTrade);   // each sentence behind its own OK
       const para = document.createElement('div'); para.className = 'lx-para lx-partc';
       para.innerHTML =
         `<span class="lx-hr"></span>` +
@@ -557,8 +557,19 @@ App.scenes = (function () {
           : `Buyer: value − price = ${tv.toFixed(1)} − ${price.toFixed(1)} = <b>${p.buyer.toFixed(1)}</b>`;
         return [you, other, `<span class="lx-cost-note">production cost = value − 0.3</span>`]; };
       const advice = c.finalLines.slice(1).concat(c.strategy ? [c.strategy] : []);
+      // caption strings are buyer-framed ("you'd buy…"). /* REVIEW: if seller examples arrive, these may need App.TEXT_VARIANTS */
+      const captionFor = (b) => round1(b) === round1(tv) ? 'you buy exactly the good deals, nothing else'
+        : (b > tv ? "you'd buy at a loss here" : "you'd miss these good deals");
+      // qualifier under the bid number flips live with the slider (buyer-framed, inline — examples are seller-stubbed). /* REVIEW: App.TEXT_VARIANTS if seller examples arrive */
+      const qualFor = (b) => round1(b) === round1(tv) ? 'You bid optimally.' : (b > tv ? 'You overbid.' : 'You underbid.');
       api.stage.innerHTML =
-        `<div class="lx-graphic-slot">${lx.line()}</div>` +
+        `<div class="lx-graphic-slot lx-exzones">${lx.line()}</div>` +   // the flipping caption sits inside, directly under the bracket
+        `<div class="lx-zlegend" id="lx-zlegend">` +
+          `<span class="lx-zleg-item"><span class="lx-zleg-sw band"></span>where the price can land (green good, red loss)</span>` +
+          `<span class="lx-zleg-item"><span class="lx-zleg-sw green"></span>below value: good deal</span>` +
+          `<span class="lx-zleg-item"><span class="lx-zleg-sw pink"></span>above value: loss</span>` +
+          `<span class="lx-zleg-item"><span class="lx-zleg-sw hatch"></span>bid away from the value</span>` +
+        `</div>` +
         `<div class="lx-pf" id="lx-expf"></div>` +
         `<div class="lx-calc-box plain" id="lx-excalcbox"></div>` +
         `<div class="lx-slogan"><div class="lx-recap" id="lx-recap"></div><div class="lx-advice" id="lx-advice"></div></div>` +
@@ -570,11 +581,14 @@ App.scenes = (function () {
 
       // update graph + payoffs + calc + recap + the "Your bid is X" left-text number for the current bid
       const update = (bid) => {
-        lx.setLine(line, { tv: tv, bid: bid, price: price, band: true });
+        lx.setLine(line, { tv: tv, bid: bid, price: price, band: false });   // green/pink zones replace the blue ±1 band here
+        lx.setZones(line, { tv: tv, bid: bid, caption: captionFor(bid) });   // zones + bracket + caption flip in lockstep with the bid
+        { const lg = q('lx-zlegend'); if (lg) lg.style.display = ''; }
         q('lx-expf').innerHTML = pfHtml(bid, '');
         q('lx-excalcbox').innerHTML = calcStmts(bid).map((s) => `<p class="stmt">${s}</p>`).join('');
         q('lx-recap').textContent = recapFor(bid);
         const bn = document.getElementById('lx-exbidnum'); if (bn) bn.textContent = fmtBid(bid);
+        const bq = document.getElementById('lx-exbidqual'); if (bq) bq.textContent = qualFor(bid);   // "You overbid." / "You underbid." / "You bid optimally."
       };
       const slEl = q('lx-exslider'); this._interacted = false;
       slEl.addEventListener('input', () => {
@@ -605,17 +619,23 @@ App.scenes = (function () {
 
       // OK-gated: each step's OK reveals the next visual via onStep(); the slider is revealed by onStepsDone
       lx.setLine(line, { tv: null, bid: null, price: null, band: false });
-      ['lx-expf', 'lx-excalcbox', 'lx-recap', 'lx-advice', 'lx-exbid'].forEach((idn) => { const el = q(idn); if (el) el.style.display = 'none'; });
-      this._ex = { line, tv, price, c, update, pfHtml, calcStmts, recapFor, advice };
+      ['lx-expf', 'lx-excalcbox', 'lx-recap', 'lx-advice', 'lx-exbid', 'lx-zlegend'].forEach((idn) => { const el = q(idn); if (el) el.style.display = 'none'; });
+      this._ex = { line, tv, price, c, update, pfHtml, calcStmts, recapFor, advice, captionFor };
     },
     // one visual per OK: 0 value · 1 bid · 2 price+band · 3 payoff+calc · 4 recap · 5 advice
     onStep(api, idx) {
       if (api.revisit || !this._ex) return;
       const e = this._ex;
       const show = (idn, html) => { const el = q(idn); if (!el) return; el.style.display = ''; if (html != null) el.innerHTML = html; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
-      if (idx === 0) lx.setLine(e.line, { tv: e.tv, bid: null, price: null, band: false });
-      else if (idx === 1) lx.setLine(e.line, { tv: e.tv, bid: e.c.bid, price: null, band: false });
-      else if (idx === 2) { lx.setLine(e.line, { tv: e.tv, bid: e.c.bid, price: e.price, band: true }); const pm = e.line.querySelector('.lx-mark.lx-price'); if (pm) { pm.classList.remove('lx-price-appear'); void pm.offsetWidth; pm.classList.add('lx-price-appear'); } }
+      if (idx === 0) {
+        lx.setLine(e.line, { tv: e.tv, bid: null, price: null, band: false });
+        lx.setZones(e.line, { tv: e.tv, bid: null });   // green/pink good-deal/loss zones appear with the value
+        const lg = q('lx-zlegend'); if (lg) { lg.style.display = ''; lg.classList.remove('lx-fade'); void lg.offsetWidth; lg.classList.add('lx-fade'); }
+      } else if (idx === 1) {
+        lx.setLine(e.line, { tv: e.tv, bid: e.c.bid, price: null, band: false });
+        lx.setZones(e.line, { tv: e.tv, bid: e.c.bid, caption: e.captionFor(e.c.bid) });   // hatch + bracket + caption (the span bid is off by) appear with the bid
+        const cap = e.line.querySelector('.lx-zcap'); if (cap) { cap.classList.remove('lx-fade'); void cap.offsetWidth; cap.classList.add('lx-fade'); }
+      } else if (idx === 2) { lx.setLine(e.line, { tv: e.tv, bid: e.c.bid, price: e.price, band: false }); const pm = e.line.querySelector('.lx-mark.lx-price'); if (pm) { pm.classList.remove('lx-price-appear'); void pm.offsetWidth; pm.classList.add('lx-price-appear'); } }
       else if (idx === 3) { show('lx-expf', e.pfHtml(e.c.bid, '')); show('lx-excalcbox', e.calcStmts(e.c.bid).map((s) => `<p class="stmt">${s}</p>`).join('')); }
       else if (idx === 4) show('lx-recap', e.recapFor(e.c.bid));
       else if (idx === 5) show('lx-advice', e.advice.map((l) => `<div>${l}</div>`).join(''));

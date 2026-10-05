@@ -86,6 +86,11 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 /* subtle "click next to proceed" hint that fades in when the gate opens */
 .lx-nexthint { text-align: center; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 100; text-transform: uppercase; letter-spacing: 3px; font-size: 11px; color: #b3a6d0; margin: 26px auto 0; max-width: 575px; opacity: 0; transition: opacity .6s ease; }
 .lx-nexthint.show { opacity: 1; }
+/* required-action hint near the nav while Next is still gated (always visible, no hover needed); muted + calm */
+.lx-gatehint { text-align: center; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 300; letter-spacing: .4px; font-size: 12.5px; color: #8a8a8a; margin: 10px auto 0; max-width: 575px; opacity: 0; transition: opacity .4s ease; }
+.lx-gatehint.show { opacity: 1; }
+.lx-gatehint.lx-pulse, .lx-nextcount.lx-pulse, .lx-ok.lx-pulse { animation: lx-cue-pulse .5s ease; }
+@keyframes lx-cue-pulse { 0%, 100% { transform: none; } 30% { transform: scale(1.06); } }
 /* second sentence flows normally within the reading column, aligned like the rest */
 .lx-below-text .lx-wideline { display: inline; }
 /* key word emphasis in the "you are the buyer" flavor — hairline underline, no bold */
@@ -182,6 +187,31 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 @keyframes lx-priceappear { from { opacity: 0; transform: translateX(-1.5px) scaleY(.25); } to { opacity: 1; transform: translateX(-1.5px) scaleY(1); } }
 .lx-ends { position: absolute; left: 0; right: 0; top: 100%; display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
 
+/* ---------- price zones (worked examples) ---------- */
+/* green = price below value (good deal), pink = above (loss); hatch+bracket = the span the bid is off by. muted teaching tints, consistent with the deck's above/below-value coding. */
+.lx-zones { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.lx-zone { position: absolute; top: 6px; bottom: 6px; border-radius: 3px; }
+.lx-zone-green { background: rgba(76,160,90,0.13); border: 1px solid rgba(76,160,90,0.34); }
+.lx-zone-pink  { background: rgba(203,74,84,0.09); border: 1px solid rgba(203,74,84,0.28); }
+/* hatch = the span the bid is off by: a distinct muted slate, set apart from the green/pink zones (and from blue=price, red=bid) */
+.lx-zone-hatch { background-color: rgba(96,110,130,0.07); background-image: repeating-linear-gradient(45deg, rgba(96,110,130,0.42) 0 2px, transparent 2px 7px); border: 1px solid rgba(96,110,130,0.52); }
+.lx-zbracket { position: absolute; top: calc(100% + 34px); height: 7px; border: 1.5px solid rgba(96,110,130,0.7); border-top: none; border-radius: 0 0 2px 2px; }
+/* flipping caption: sits directly under the bracket (anchored at its midpoint); falls back to a centered line on narrow screens */
+.lx-zcap { position: absolute; top: calc(100% + 44px); transform: translateX(-50%); white-space: nowrap; text-align: center; font-size: 12px; color: rgba(84,96,114,0.95); }
+.lx-exzones { position: relative; padding-bottom: 46px; }   /* reserve room under the line for the bracket + caption */
+.lx-zlegend { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; font-size: 11px; color: var(--muted); margin: 14px 0 6px; }   /* margin-top keeps clear air between the caption above and the legend */
+.lx-zleg-item { display: inline-flex; align-items: center; gap: 5px; }
+.lx-zleg-sw { width: 18px; height: 11px; border-radius: 2px; display: inline-block; flex: 0 0 auto; }
+.lx-zleg-sw.green { background: rgba(76,160,90,0.16); border: 1px solid rgba(76,160,90,0.42); }
+.lx-zleg-sw.pink  { background: rgba(203,74,84,0.12); border: 1px solid rgba(203,74,84,0.36); }
+.lx-zleg-sw.hatch { background-color: rgba(96,110,130,0.10); background-image: repeating-linear-gradient(45deg, rgba(96,110,130,0.5) 0 2px, transparent 2px 6px); border: 1px solid rgba(96,110,130,0.55); }
+.lx-zleg-sw.band  { background: linear-gradient(90deg, rgba(76,160,90,0.22) 0 50%, rgba(203,74,84,0.18) 50% 100%); border: 1px solid rgba(120,120,120,0.4); }
+/* narrow screens: the nowrap caption could overflow under an off-centre bracket, so centre it full-width and let it wrap */
+@media (max-width: 430px) {
+  .lx-zcap { left: 50% !important; white-space: normal; width: 94%; }
+  .lx-exzones { padding-bottom: 74px; }
+}
+
 /* ---------- trade / earnings ---------- */
 .lx-trade-out { text-align: center; margin-top: 12px; font-weight: 300; min-height: 1.4em; }
 .lx-yes { color: #1a7f4b; } .lx-no { color: var(--red); } .lx-muted { color: var(--muted); font-weight: 400; }
@@ -218,6 +248,15 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 /* gentle rhythm pulse on the active nav buttons */
 .lx-nav:not(:disabled) { animation: lx-navbreath 3.6s ease-in-out infinite; }
 @keyframes lx-navbreath { 0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } 50% { box-shadow: 0 3px 13px rgba(0,0,0,.13); } }
+
+/* countdown badge sits just left of Next (keeps the footer's 3-column grid intact via its own wrap) */
+.lx-next-wrap { display: inline-flex; align-items: center; gap: 8px; justify-self: end; }
+.lx-nextcount { position: relative; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; color: #777; border: 1px solid var(--line); background: #fff; }
+@property --cd-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+/* depleting ring (progressive enhancement: where @property is unsupported the ring stays empty and only the number counts) */
+.lx-nextcount::before { content: ''; position: absolute; inset: -1px; border-radius: 50%; background: conic-gradient(rgba(0,0,0,.26) var(--cd-angle, 0deg), rgba(0,0,0,0) 0); -webkit-mask: radial-gradient(circle, transparent 61%, #000 62%); mask: radial-gradient(circle, transparent 61%, #000 62%); pointer-events: none; }
+.lx-nextcount.run::before { animation: lx-cd-deplete var(--cd-dur, 3000ms) linear forwards; }
+@keyframes lx-cd-deplete { from { --cd-angle: 360deg; } to { --cd-angle: 0deg; } }
 .lx-dots { display: flex; gap: 7px; justify-self: center; overflow: hidden; }
 .lx-dot { width: 8px; height: 8px; border-radius: 50%; background: #d6d6d6; flex: 0 0 auto; }
 .lx-dot.done { background: #9aa0a6; } .lx-dot.current { background: #000; transform: scale(1.25); }
