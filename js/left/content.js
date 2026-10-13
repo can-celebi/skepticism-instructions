@@ -30,15 +30,14 @@ App.content.build = function () {
     },
     // 2 — two-panel
     {
-      id: 'two-panel', scene: 'twoPanel', title: 'overview', belowFrom: 3,   // segments 1-3 above the example image, rest below it
-      steps: [
-        { text: [T('twoPanel.0')] },
-        { text: [T('twoPanel.1')] },
-        { text: [T('twoPanel.2')] },   // the example image appears here (twoPanel onStep)
-        { text: [T('twoPanel.4')] },
-        { text: [T('twoPanel.5')] },
-        { text: [T('twoPanel.6')] },
-      ],
+      id: 'two-panel', scene: 'twoPanel', title: 'overview', belowFrom: 3,   // steps 0-2 above the example image (idx 2 reveals it), rest below
+      // Seller gets an extra below-graphic line (twoPanel.buyerBlind: "the buyer
+      // does not know the value"); the buyer already states this above as twoPanel.1.
+      // Image still reveals at step index 2 in both treatments (twoPanel onStep).
+      steps: ((App.config.TREATMENT === 'SELLER')
+        ? ['twoPanel.0', 'twoPanel.1', 'twoPanel.2', 'twoPanel.buyerBlind', 'twoPanel.4', 'twoPanel.5', 'twoPanel.6']
+        : ['twoPanel.0', 'twoPanel.1', 'twoPanel.2', 'twoPanel.4', 'twoPanel.5', 'twoPanel.6']
+      ).map(function (k) { return { text: [T(k)] }; }),
     },
     // 3 — reviews (normalized bars)
     {
