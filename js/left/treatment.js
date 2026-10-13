@@ -176,25 +176,25 @@ App.TEXT_VARIANTS = {
   // price.bidNoChange, shown up front after the true-value sentence (coauthor edit).
 
   // ===== Slide: lessons / takeaway =====
-  // Seller arc = Can's 5-line version (2026-10-05). NOTE: it ends on the earning
-  // line, NOT Stefan's agreed close; it also re-introduces the steering Stefan had
-  // trimmed. Deliberate per Can. The buyer arc keeps its own 6 lines, so the slide
-  // is 5 steps for the seller and 6 for the buyer (built in content.js by treatment).
+  // Can's versions (2026-10-13): BUYER = 5 lines (from docs/can-meeting-notes/buyerData.md),
+  // SELLER = 4 lines. They diverge in order and count, so content.js builds the step
+  // list per treatment: buyer = lessons.0-.4 (5), seller = lessons.0-.3 (4).
+  // NOTE: the seller arc ends on the earning line, not Stefan's agreed close (deliberate).
   'lessons.0': { kind: 'narrative',
     buyer: 'The examples show one simple rule: bid what you <span class="lx-key">believe</span> the product is truly worth.',
     seller: 'The examples show one simple rule for buyers: bid what they <span class="lx-key">believe</span> the product is truly worth.' },
   'lessons.1': { kind: 'narrative',
-    buyer: 'Bid above it and you risk overpaying; bid below it and you risk missing a good deal.',
+    buyer: 'You have to estimate it from the reviews you are shown.',
     seller: "But buyers don't see the true value. They have to estimate it from the reviews you choose to show them." },
   'lessons.2': { kind: 'narrative',
-    buyer: "But there's a catch. You don't see the true value.",
-    seller: 'The buyer\'s beliefs determine how much they bid.' },
+    buyer: 'Bid above it and you risk overpaying; bid below it and you risk missing a good deal.',
+    seller: 'And the reviews you choose to show affect what the buyer estimates.' },
   'lessons.3': { kind: 'narrative',
-    buyer: 'You have to estimate it from the reviews you are shown.',
-    seller: 'And the reviews you choose to show affect what the buyer believes.' },
-  'lessons.4': { kind: 'narrative',
-    buyer: 'And those reviews are chosen by the seller who earns more when you bid higher.',
+    buyer: 'The reviews are chosen by the seller who earns more when you bid higher.',
     seller: 'The higher the buyer bids, the more you earn.' },
+  'lessons.4': { kind: 'narrative',
+    buyer: 'The real challenge is judging the true value from evidence someone else selected.',
+    seller: '' /* buyer-only slot: seller takeaway is 4 lines (lessons.0-.3) */ },
   // lessons.5 seller is NOT rendered today (seller arc is 5 lines, ends on lessons.4).
   // Stefan's agreed close is kept here so re-adding it is just appending lessons.5
   // to the seller step list in content.js.

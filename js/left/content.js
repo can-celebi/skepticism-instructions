@@ -138,11 +138,11 @@ App.content.build = function () {
     // moral / lessons from the examples — each statement behind its own OK
     {
       id: 'lessons', title: 'takeaway',
-      // Treatment-dependent length: seller takeaway is 5 lines (ends on lessons.4),
-      // buyer takeaway is 6 lines. Built from App.config.TREATMENT at build() time.
+      // Treatment-dependent length: seller takeaway is 4 lines, buyer is 5.
+      // Built from App.config.TREATMENT at build() time.
       steps: ((App.config.TREATMENT === 'SELLER')
-        ? ['lessons.0', 'lessons.1', 'lessons.2', 'lessons.3', 'lessons.4']
-        : ['lessons.0', 'lessons.1', 'lessons.2', 'lessons.3', 'lessons.4', 'lessons.5']
+        ? ['lessons.0', 'lessons.1', 'lessons.2', 'lessons.3']
+        : ['lessons.0', 'lessons.1', 'lessons.2', 'lessons.3', 'lessons.4']
       ).map(function (k) { return { text: [T(k)] }; }),
     },
     // (disclosure example slides commented out for now — restore when needed)
