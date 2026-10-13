@@ -116,23 +116,41 @@ App.lx = (function () {
     mark('.lx-tv', o.tv, o.tvTag); mark('.lx-bidm', o.bid, o.bidTag); mark('.lx-price', o.price, o.priceTag);
   }
 
-  // Neutral slate bracket drawn INSIDE an existing .lx-line (worked-example slider phase).
-  // It spans the gap between the bid and the value. No zone fills, no dashed band — just
-  // the bracket. Geometry only; the caption text is set by the caller into its own
-  // centered element. Hidden when there is no bid or when the bid equals the value.
+  // Neutral slate bracket + tracking caption drawn INSIDE an existing .lx-line
+  // (worked-example slider phase). The bracket spans the gap between the bid and the
+  // value; the caption (text authored by the caller) rides under the bracket's centre
+  // and flips/moves with the bid. No zone fills, no dashed band. When bid == value the
+  // bracket is hidden and the caption centres under the value mark. The caption's left is
+  // clamped so its (translateX(-50%)) box never spills past the line's edges; a CSS media
+  // query (<=430px) overrides left to centre it full-width and let it wrap.
   function setBracket(root, o) {
     let host = root.querySelector(':scope > .lx-brk');
     if (!host) {
       host = document.createElement('div'); host.className = 'lx-brk';
-      host.innerHTML = '<div class="lx-zbracket" hidden></div>';
+      host.innerHTML = '<div class="lx-zbracket" hidden></div><div class="lx-brk-cap" hidden></div>';
       root.appendChild(host);   // overlay; pointer-events none
     }
-    const brk = host.querySelector('.lx-zbracket');
-    if (!o || o.tv == null || o.bid == null || round1(o.bid) === round1(o.tv)) { host.hidden = true; brk.hidden = true; return; }
+    const brk = host.querySelector('.lx-zbracket'), cap = host.querySelector('.lx-brk-cap');
+    if (!o || o.tv == null || o.bid == null) { host.hidden = true; brk.hidden = true; cap.hidden = true; return; }
     host.hidden = false;
-    const lo = clamp(Math.min(o.bid, o.tv), 0, 6), hi = clamp(Math.max(o.bid, o.tv), 0, 6);
-    brk.style.left = pct(lo) + '%'; brk.style.width = Math.max(0, pct(hi) - pct(lo)) + '%';
-    brk.hidden = false;
+    const equal = round1(o.bid) === round1(o.tv);
+    let center;
+    if (equal) { brk.hidden = true; center = clamp(o.tv, 0, 6); }   // no bracket: caption sits under the value
+    else {
+      const lo = clamp(Math.min(o.bid, o.tv), 0, 6), hi = clamp(Math.max(o.bid, o.tv), 0, 6);
+      brk.style.left = pct(lo) + '%'; brk.style.width = Math.max(0, pct(hi) - pct(lo)) + '%';
+      brk.hidden = false; center = (lo + hi) / 2;   // bracket midpoint
+    }
+    if (o.caption == null) { cap.hidden = true; return; }
+    cap.hidden = false; cap.textContent = o.caption;
+    // track the bracket centre, clamped so the caption box stays inside the line's width
+    let leftPct = pct(center);
+    const w = host.clientWidth || root.clientWidth;
+    if (w && cap.offsetWidth) {
+      const halfPct = (cap.offsetWidth / 2 / w) * 100;
+      leftPct = halfPct >= 50 ? 50 : Math.min(100 - halfPct, Math.max(halfPct, leftPct));   // too wide to fit → just centre it
+    }
+    cap.style.left = leftPct + '%';
   }
 
   return { pct, f1, product, reviewList, rows, bars, killChart, line, setLine, setBracket };

@@ -187,15 +187,22 @@ html, body { margin: 0; height: 100%; font-family: var(--mono); color: var(--ink
 @keyframes lx-priceappear { from { opacity: 0; transform: translateX(-1.5px) scaleY(.25); } to { opacity: 1; transform: translateX(-1.5px) scaleY(1); } }
 .lx-ends { position: absolute; left: 0; right: 0; top: 100%; display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
 
-/* ---------- worked-example graph: clean line + (phase 2) slate bracket + centered caption ---------- */
-.lx-exgraph { padding-bottom: 26px; }   /* room below the line for the slate bracket */
+/* ---------- worked-example graph: clean line + (phase 2) slate bracket + tracking caption ---------- */
+.lx-exgraph { padding-bottom: 46px; }   /* room below the line for the bracket + caption (both absolute, inside the line) */
 .lx-brk { position: absolute; inset: 0; pointer-events: none; }
 /* neutral slate bracket spanning the bid↔value gap; sits below the line, clear of the value label */
-.lx-zbracket { position: absolute; top: calc(100% + 40px); height: 7px; border: 1.5px solid rgba(96,110,130,0.72); border-top: none; border-radius: 0 0 2px 2px; }
+.lx-zbracket { position: absolute; top: calc(100% + 34px); height: 7px; border: 1.5px solid rgba(96,110,130,0.72); border-top: none; border-radius: 0 0 2px 2px; }
 .lx-zbracket.lx-brk-appear { animation: lx-brkin .5s ease; }
 @keyframes lx-brkin { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-/* plain, centered, muted line under the example number line; flips with the bid */
-.lx-excaption { text-align: center; font-size: 12px; color: var(--muted); margin: 8px 0 2px; min-height: 1.2em; }
+/* caption rides under the bracket centre (left set in JS), muted; flips/moves with the bid */
+.lx-brk-cap { position: absolute; top: calc(100% + 44px); transform: translateX(-50%); white-space: nowrap; text-align: center; font-size: 12px; color: var(--muted); }
+.lx-brk-cap.lx-capin { animation: lx-capfade .5s ease; }
+@keyframes lx-capfade { from { opacity: 0; } to { opacity: 1; } }
+/* narrow screens: a nowrap caption could overflow under an off-centre bracket, so centre it full-width and let it wrap */
+@media (max-width: 430px) {
+  .lx-brk-cap { left: 50% !important; white-space: normal; width: 94%; }
+  .lx-exgraph { padding-bottom: 74px; }
+}
 
 /* ---------- trade / earnings ---------- */
 .lx-trade-out { text-align: center; margin-top: 12px; font-weight: 300; min-height: 1.4em; }

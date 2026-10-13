@@ -571,7 +571,6 @@ App.scenes = (function () {
         `<div class="lx-pf" id="lx-expf"></div>` +
         `<div class="lx-calc-box plain" id="lx-excalcbox"></div>` +
         `<div class="lx-slogan" id="lx-exslogan"><div class="lx-recap" id="lx-recap"></div><div class="lx-advice" id="lx-advice"></div></div>` +
-        `<div class="lx-excaption" id="lx-excaption"></div>` +
         `<div class="lx-exbid lx-stg" id="lx-exbid"><div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-exslider" class="lx-range red" min="0" max="6" step="0.1" value="${c.bid}"></div><div class="${gateTv ? 'lx-exbid-gate' : 'lx-exbid-hint'}" id="lx-exhint">${gateTv ? 'set your bid to the true value' : 'use the slider to change the bid'}</div></div>` +
         `<div class="lx-exgate-msg" id="lx-exgatemsg"></div>`;
       const line = api.stage.querySelector('.lx-line');   // examples use full colour coding: value black, bid red, price blue
@@ -582,8 +581,7 @@ App.scenes = (function () {
       // the payoff/calc/recap and the left-text bid number + overbid/underbid qualifier
       const update = (bid) => {
         lx.setLine(line, { tv: tv, bid: bid, price: price, band: false });   // clean line: value (black) / bid (red) / price (blue) marks only
-        lx.setBracket(line, { tv: tv, bid: bid });                           // slate bracket spanning the bid↔value gap (no zones, no band)
-        { const cap = q('lx-excaption'); if (cap) cap.textContent = captionFor(bid); }   // plain centered caption, flips with the bid
+        lx.setBracket(line, { tv: tv, bid: bid, caption: captionFor(bid) });   // slate bracket + caption riding under its centre (no zones, no band)
         q('lx-expf').innerHTML = pfHtml(bid, '');
         q('lx-excalcbox').innerHTML = calcStmts(bid).map((s) => `<p class="stmt">${s}</p>`).join('');
         q('lx-recap').textContent = recapFor(bid);
@@ -609,8 +607,8 @@ App.scenes = (function () {
       this._t = [];
       const at = api.S.i, T = (ms, fn) => this._t.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms));
 
-      if (api.revisit) {   // Back → final phase-2 layout (graph above slider), bracket + slider shown, gate open, no animation
-        api.stage.insertBefore(q('lx-exgraph'), q('lx-excaption'));
+      if (api.revisit) {   // Back → final phase-2 layout (graph above slider), bracket + caption + slider shown, gate open, no animation
+        api.stage.insertBefore(q('lx-exgraph'), q('lx-exbid'));
         q('lx-advice').innerHTML = advice.map((l) => `<div>${l}</div>`).join('');
         q('lx-exbid').classList.add('show');
         update(c.bid);
@@ -619,9 +617,10 @@ App.scenes = (function () {
       }
 
       // Phase 1: the graph stays visible on top and builds up via onStep (value/bid/price);
-      // the payoff/calc/recap/advice boxes + the caption + the slider stay hidden until later.
+      // the payoff/calc/recap/advice boxes + the slider stay hidden until later. The bracket
+      // + caption live inside the line and only appear in phase 2 (setBracket, via update).
       lx.setLine(line, { tv: null, bid: null, price: null, band: false });
-      ['lx-expf', 'lx-excalcbox', 'lx-recap', 'lx-advice', 'lx-excaption', 'lx-exbid'].forEach((idn) => { const el = q(idn); if (el) el.style.display = 'none'; });
+      ['lx-expf', 'lx-excalcbox', 'lx-recap', 'lx-advice', 'lx-exbid'].forEach((idn) => { const el = q(idn); if (el) el.style.display = 'none'; });
       this._ex = { line, tv, price, c, update, pfHtml, calcStmts, recapFor, advice, captionFor };
     },
     // Phase 1 narrative, one visual per OK: 0 value · 1 +bid · 2 +price · 3 payoff+calc · 4 recap · 5 advice
@@ -640,16 +639,15 @@ App.scenes = (function () {
     // slide up to fill the gap (nothing jumps), bring in the bracket + caption, reveal the slider.
     onStepsDone(api) {
       const e = this._ex; if (!e) return;
-      const graph = q('lx-exgraph'), caption = q('lx-excaption'), slider = q('lx-exbid');
+      const graph = q('lx-exgraph'), slider = q('lx-exbid');
       const s = q('lx-exslider'); if (s) s.value = String(e.c.bid);
-      e.update(e.c.bid);   // marks already positioned in phase 1; this adds the bracket + caption text (both still hidden/absolute, no reflow)
+      e.update(e.c.bid);   // marks already positioned in phase 1; this adds the bracket + caption inside the line (absolute, no reflow)
       const movers = ['lx-exgraph', 'lx-expf', 'lx-excalcbox', 'lx-exslogan'];
       const rect = () => { const r = {}; movers.forEach((idn) => { const el = q(idn); if (el) r[idn] = el.getBoundingClientRect(); }); return r; };
       const first = rect();                                   // FIRST: positions before the move
-      api.stage.insertBefore(graph, caption);                 // MUTATE: graph drops to just above the caption/slider
-      if (caption) caption.style.display = '';
+      api.stage.insertBefore(graph, slider);                  // MUTATE: graph drops to just above the slider
       if (slider) { slider.style.display = ''; slider.classList.add('show'); }
-      const last = rect();                                    // LAST: positions after the move + reveals
+      const last = rect();                                    // LAST: positions after the move + reveal
       movers.forEach((idn) => {                               // INVERT: translate each back to where it was
         const el = q(idn); if (!el || !first[idn] || !last[idn]) return;
         const dx = first[idn].left - last[idn].left, dy = first[idn].top - last[idn].top;
@@ -660,8 +658,9 @@ App.scenes = (function () {
         movers.forEach((idn) => { const el = q(idn); if (el) { el.style.transition = 'transform .55s cubic-bezier(.4,0,.15,1)'; el.style.transform = ''; } });
       });
       this._t.push(setTimeout(() => { movers.forEach((idn) => { const el = q(idn); if (el) { el.style.transition = ''; el.style.transform = ''; } }); }, 700));   // clear so later live updates never animate layout
-      if (caption) { caption.classList.remove('lx-fade'); void caption.offsetWidth; caption.classList.add('lx-fade'); }   // caption fades in
-      const brk = e.line.querySelector('.lx-zbracket'); if (brk && !brk.hidden) { brk.classList.remove('lx-brk-appear'); void brk.offsetWidth; brk.classList.add('lx-brk-appear'); }   // bracket appears
+      // the bracket + caption ride inside the graph (so they travel with the FLIP); play their appear
+      const brk = e.line.querySelector('.lx-zbracket'); if (brk && !brk.hidden) { brk.classList.remove('lx-brk-appear'); void brk.offsetWidth; brk.classList.add('lx-brk-appear'); }
+      const cap = e.line.querySelector('.lx-brk-cap'); if (cap && !cap.hidden) { cap.classList.remove('lx-capin'); void cap.offsetWidth; cap.classList.add('lx-capin'); }
     },
     leave() { (this._t || []).forEach(clearTimeout); if (this._gate) this._gate.cancel(); },
   };
