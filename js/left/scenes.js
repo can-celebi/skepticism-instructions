@@ -562,14 +562,15 @@ App.scenes = (function () {
         : (b > tv ? "you'd buy at a loss here" : "you'd miss these good deals");
       // qualifier under the bid number flips live with the slider (buyer-framed, inline — examples are seller-stubbed). /* REVIEW: App.TEXT_VARIANTS if seller examples arrive */
       const qualFor = (b) => round1(b) === round1(tv) ? 'You bid optimally.' : (b > tv ? 'You overbid.' : 'You underbid.');
-      // Narrative steps show only TEXT + the payoff/calc/recap/advice boxes. The clean
-      // number line (value/bid/price marks only) is deferred to the slider step at the
-      // bottom, so the graph appears together with the interactive question.
+      // Phase 1 (narrative): the clean number line sits ABOVE the payoff/calc/recap/advice
+      // boxes and builds up mark by mark (value, bid, price). Phase 2 (onStepsDone): the
+      // graph FLIP-slides down to just above the slider, the slate bracket + caption appear,
+      // and the slider moves the bid live. No zone fills, no dashed band at any point.
       api.stage.innerHTML =
+        `<div class="lx-graphic-slot lx-exgraph" id="lx-exgraph">${lx.line()}</div>` +
         `<div class="lx-pf" id="lx-expf"></div>` +
         `<div class="lx-calc-box plain" id="lx-excalcbox"></div>` +
-        `<div class="lx-slogan"><div class="lx-recap" id="lx-recap"></div><div class="lx-advice" id="lx-advice"></div></div>` +
-        `<div class="lx-graphic-slot lx-exgraph" id="lx-exgraph">${lx.line()}</div>` +
+        `<div class="lx-slogan" id="lx-exslogan"><div class="lx-recap" id="lx-recap"></div><div class="lx-advice" id="lx-advice"></div></div>` +
         `<div class="lx-excaption" id="lx-excaption"></div>` +
         `<div class="lx-exbid lx-stg" id="lx-exbid"><div class="lx-slider-wrap lx-sw-full"><input type="range" id="lx-exslider" class="lx-range red" min="0" max="6" step="0.1" value="${c.bid}"></div><div class="${gateTv ? 'lx-exbid-gate' : 'lx-exbid-hint'}" id="lx-exhint">${gateTv ? 'set your bid to the true value' : 'use the slider to change the bid'}</div></div>` +
         `<div class="lx-exgate-msg" id="lx-exgatemsg"></div>`;
@@ -577,9 +578,11 @@ App.scenes = (function () {
       { const adv = q('lx-advice');   // warnings red; the good case soft/happy pink
         if (adv) { if (id === 'ex-bid-3') adv.classList.add('lx-advice-happy'); else adv.style.color = (id === 'ex-bid-1' || id === 'ex-bid-2') ? '#dc3545' : ''; } }
 
-      // update graph + payoffs + calc + recap + the "Your bid is X" left-text number for the current bid
+      // update (phase 2): live-paint the line marks + slate bracket + centered caption +
+      // the payoff/calc/recap and the left-text bid number + overbid/underbid qualifier
       const update = (bid) => {
         lx.setLine(line, { tv: tv, bid: bid, price: price, band: false });   // clean line: value (black) / bid (red) / price (blue) marks only
+        lx.setBracket(line, { tv: tv, bid: bid });                           // slate bracket spanning the bid↔value gap (no zones, no band)
         { const cap = q('lx-excaption'); if (cap) cap.textContent = captionFor(bid); }   // plain centered caption, flips with the bid
         q('lx-expf').innerHTML = pfHtml(bid, '');
         q('lx-excalcbox').innerHTML = calcStmts(bid).map((s) => `<p class="stmt">${s}</p>`).join('');
@@ -606,39 +609,59 @@ App.scenes = (function () {
       this._t = [];
       const at = api.S.i, T = (ms, fn) => this._t.push(setTimeout(() => { if (api.S.i === at) fn(); }, ms));
 
-      if (api.revisit) {   // Back → final state + active slider + graph, gate open
-        update(c.bid);
+      if (api.revisit) {   // Back → final phase-2 layout (graph above slider), bracket + slider shown, gate open, no animation
+        api.stage.insertBefore(q('lx-exgraph'), q('lx-excaption'));
         q('lx-advice').innerHTML = advice.map((l) => `<div>${l}</div>`).join('');
         q('lx-exbid').classList.add('show');
+        update(c.bid);
         api.openGate(0);
         return;
       }
 
-      // OK-gated: narrative steps reveal only the payoff/calc/recap/advice boxes (no graph);
-      // the clean number line + caption are revealed together with the slider by onStepsDone.
+      // Phase 1: the graph stays visible on top and builds up via onStep (value/bid/price);
+      // the payoff/calc/recap/advice boxes + the caption + the slider stay hidden until later.
       lx.setLine(line, { tv: null, bid: null, price: null, band: false });
-      ['lx-expf', 'lx-excalcbox', 'lx-recap', 'lx-advice', 'lx-exbid', 'lx-exgraph', 'lx-excaption'].forEach((idn) => { const el = q(idn); if (el) el.style.display = 'none'; });
+      ['lx-expf', 'lx-excalcbox', 'lx-recap', 'lx-advice', 'lx-excaption', 'lx-exbid'].forEach((idn) => { const el = q(idn); if (el) el.style.display = 'none'; });
       this._ex = { line, tv, price, c, update, pfHtml, calcStmts, recapFor, advice, captionFor };
     },
-    // narrative steps reveal boxes only: 3 payoff+calc · 4 recap · 5 advice (0/1/2 are text-only, no graph)
+    // Phase 1 narrative, one visual per OK: 0 value · 1 +bid · 2 +price · 3 payoff+calc · 4 recap · 5 advice
     onStep(api, idx) {
       if (api.revisit || !this._ex) return;
       const e = this._ex;
       const show = (idn, html) => { const el = q(idn); if (!el) return; el.style.display = ''; if (html != null) el.innerHTML = html; el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); };
-      if (idx === 3) { show('lx-expf', e.pfHtml(e.c.bid, '')); show('lx-excalcbox', e.calcStmts(e.c.bid).map((s) => `<p class="stmt">${s}</p>`).join('')); }
+      if (idx === 0) lx.setLine(e.line, { tv: e.tv, bid: null, price: null, band: false });
+      else if (idx === 1) lx.setLine(e.line, { tv: e.tv, bid: e.c.bid, price: null, band: false });
+      else if (idx === 2) { lx.setLine(e.line, { tv: e.tv, bid: e.c.bid, price: e.price, band: false }); const pm = e.line.querySelector('.lx-mark.lx-price'); if (pm) { pm.classList.remove('lx-price-appear'); void pm.offsetWidth; pm.classList.add('lx-price-appear'); } }
+      else if (idx === 3) { show('lx-expf', e.pfHtml(e.c.bid, '')); show('lx-excalcbox', e.calcStmts(e.c.bid).map((s) => `<p class="stmt">${s}</p>`).join('')); }
       else if (idx === 4) show('lx-recap', e.recapFor(e.c.bid));
       else if (idx === 5) show('lx-advice', e.advice.map((l) => `<div>${l}</div>`).join(''));
     },
-    // reveal the clean number line + caption together with the interactive slider.
-    // update() positions the marks + slider value BEFORE anything is shown, so the first
-    // painted frame is already correct (no far-right start that then snaps into place).
-    onStepsDone() {
+    // Phase 2: FLIP-slide the graph down to just above the slider while the boxes it leaves
+    // slide up to fill the gap (nothing jumps), bring in the bracket + caption, reveal the slider.
+    onStepsDone(api) {
       const e = this._ex; if (!e) return;
+      const graph = q('lx-exgraph'), caption = q('lx-excaption'), slider = q('lx-exbid');
       const s = q('lx-exslider'); if (s) s.value = String(e.c.bid);
-      e.update(e.c.bid);   // paints line/caption/qualifier while the graph is still display:none
-      const reveal = (idn, fade) => { const el = q(idn); if (!el) return; el.style.display = ''; if (fade) { el.classList.remove('lx-fade'); void el.offsetWidth; el.classList.add('lx-fade'); } };
-      reveal('lx-exgraph', true); reveal('lx-excaption', true);
-      const el = q('lx-exbid'); if (el) { el.style.display = ''; el.classList.add('show'); }
+      e.update(e.c.bid);   // marks already positioned in phase 1; this adds the bracket + caption text (both still hidden/absolute, no reflow)
+      const movers = ['lx-exgraph', 'lx-expf', 'lx-excalcbox', 'lx-exslogan'];
+      const rect = () => { const r = {}; movers.forEach((idn) => { const el = q(idn); if (el) r[idn] = el.getBoundingClientRect(); }); return r; };
+      const first = rect();                                   // FIRST: positions before the move
+      api.stage.insertBefore(graph, caption);                 // MUTATE: graph drops to just above the caption/slider
+      if (caption) caption.style.display = '';
+      if (slider) { slider.style.display = ''; slider.classList.add('show'); }
+      const last = rect();                                    // LAST: positions after the move + reveals
+      movers.forEach((idn) => {                               // INVERT: translate each back to where it was
+        const el = q(idn); if (!el || !first[idn] || !last[idn]) return;
+        const dx = first[idn].left - last[idn].left, dy = first[idn].top - last[idn].top;
+        el.style.transition = 'none'; el.style.transform = (dx || dy) ? `translate(${dx}px, ${dy}px)` : '';
+      });
+      void api.stage.offsetWidth;                             // reflow so the inverted transforms take hold
+      requestAnimationFrame(() => {                           // PLAY: animate every mover to its new place together
+        movers.forEach((idn) => { const el = q(idn); if (el) { el.style.transition = 'transform .55s cubic-bezier(.4,0,.15,1)'; el.style.transform = ''; } });
+      });
+      this._t.push(setTimeout(() => { movers.forEach((idn) => { const el = q(idn); if (el) { el.style.transition = ''; el.style.transform = ''; } }); }, 700));   // clear so later live updates never animate layout
+      if (caption) { caption.classList.remove('lx-fade'); void caption.offsetWidth; caption.classList.add('lx-fade'); }   // caption fades in
+      const brk = e.line.querySelector('.lx-zbracket'); if (brk && !brk.hidden) { brk.classList.remove('lx-brk-appear'); void brk.offsetWidth; brk.classList.add('lx-brk-appear'); }   // bracket appears
     },
     leave() { (this._t || []).forEach(clearTimeout); if (this._gate) this._gate.cancel(); },
   };
